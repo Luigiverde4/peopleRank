@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useRoomStore } from '../../store/roomStore'
+import { buildRoomReport } from '../../store/reportExport'
 import { currentSessionFile } from '../../store/sessionTransfer'
 import { useUiStore } from '../../store/uiStore'
 import { downloadFile, downloadVisibleBoard } from './exportBoard'
 
 const itemClass = 'block w-full rounded px-3 py-1.5 text-left text-sm hover:bg-slate-100'
 
-/** Export the visible board (PNG) or the whole session (JSON, to continue it later). */
+/** Export the visible board (PNG), the whole session (JSON, to continue it later) or a standalone report (HTML). */
 export function ExportMenu() {
   const slug = useRoomStore((s) => s.room?.slug ?? 'sala')
   const view = useUiStore((s) => s.view)
@@ -27,6 +28,8 @@ export function ExportMenu() {
   const exportSession = () =>
     downloadFile(`peopleRank-${slug}-sesion.json`, JSON.stringify(currentSessionFile(), null, 2), 'application/json')
 
+  const exportReport = async () => downloadFile(`peopleRank-${slug}-informe.html`, await buildRoomReport(), 'text/html')
+
   return (
     <details className="relative" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary
@@ -45,6 +48,12 @@ export function ExportMenu() {
           <button type="button" className={itemClass} onClick={() => void run(exportSession)}>
             Sesión (JSON)
             <span className="block text-xs text-slate-500">Para importarla y continuar en otra sala.</span>
+          </button>
+          <button type="button" className={itemClass} onClick={() => void run(exportReport)}>
+            Informe (HTML)
+            <span className="block text-xs text-slate-500">
+              Tableros y estadísticas en un fichero para ver sin la app.
+            </span>
           </button>
         </div>
       )}

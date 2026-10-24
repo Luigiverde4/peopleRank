@@ -20,7 +20,7 @@ export function ConsensusBoard() {
   const withoutVotes = people.length - items.length
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
       <p className="text-xs text-slate-500">
         Posición = mediana de los votos · halo = dispersión · número = votos
         {withoutVotes > 0 && ` · ${withoutVotes} sin votos`}

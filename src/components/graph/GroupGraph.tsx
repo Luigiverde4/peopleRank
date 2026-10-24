@@ -5,7 +5,6 @@ import { NO_GROUP_COLOR } from '../../lib/colors'
 import { groupGraph } from '../../lib/graph'
 import { initials } from '../../lib/names'
 import { useRoomStore } from '../../store/roomStore'
-import { BOARD_MAX_SIZE } from '../board/Board'
 import { useTokenStyles, type TokenLook } from '../useTokenStyles'
 
 const NODE_RADIUS = 7
@@ -51,41 +50,42 @@ export default function GroupGraph() {
   }, [people, groups, memberships])
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
       <p className="text-xs text-slate-500">
         Cada línea une a dos personas que comparten grupo (color del grupo; más gruesa si comparten varios). Arrastra
         para mover, rueda para hacer zoom.
       </p>
-      <div
-        ref={containerRef}
-        data-board-export
-        className="aspect-square w-full overflow-hidden rounded-lg border border-slate-300 bg-white"
-        style={{ maxWidth: BOARD_MAX_SIZE }}
-      >
-        {size > 0 && (
-          <ForceGraph2D<GraphNode, GraphLinkDatum>
-            ref={graphRef}
-            width={size}
-            height={size}
-            graphData={graphData}
-            backgroundColor="#ffffff"
-            nodeLabel={(node) => node.name}
-            nodeRelSize={NODE_RADIUS}
-            linkColor={(link) => `${link.color}66`}
-            linkWidth={(link) => link.width}
-            nodeCanvasObject={(node, context, scale) => drawNode(node, lookOf(node.person), context, scale)}
-            nodePointerAreaPaint={(node, color, context) => {
-              context.fillStyle = color
-              context.beginPath()
-              context.arc(node.x ?? 0, node.y ?? 0, NODE_RADIUS + RING_WIDTH, 0, 2 * Math.PI)
-              context.fill()
-            }}
-            cooldownTicks={150}
-            // Keep repainting after the layout settles so filter/search changes show at once.
-            autoPauseRedraw={false}
-            onEngineStop={() => graphRef.current?.zoomToFit(400, 24)}
-          />
-        )}
+      <div className="board-area flex w-full justify-center">
+        <div
+          ref={containerRef}
+          data-board-export
+          className="board-fit aspect-square overflow-hidden rounded-lg border border-slate-300 bg-white"
+        >
+          {size > 0 && (
+            <ForceGraph2D<GraphNode, GraphLinkDatum>
+              ref={graphRef}
+              width={size}
+              height={size}
+              graphData={graphData}
+              backgroundColor="#ffffff"
+              nodeLabel={(node) => node.name}
+              nodeRelSize={NODE_RADIUS}
+              linkColor={(link) => `${link.color}66`}
+              linkWidth={(link) => link.width}
+              nodeCanvasObject={(node, context, scale) => drawNode(node, lookOf(node.person), context, scale)}
+              nodePointerAreaPaint={(node, color, context) => {
+                context.fillStyle = color
+                context.beginPath()
+                context.arc(node.x ?? 0, node.y ?? 0, NODE_RADIUS + RING_WIDTH, 0, 2 * Math.PI)
+                context.fill()
+              }}
+              cooldownTicks={150}
+              // Keep repainting after the layout settles so filter/search changes show at once.
+              autoPauseRedraw={false}
+              onEngineStop={() => graphRef.current?.zoomToFit(400, 24)}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

@@ -3,7 +3,7 @@ import type { Person } from '../../data/types'
 import { boardToPercent, type BoardPoint } from '../../lib/geometry'
 import { Token } from '../Token'
 import { useTokenStyles } from '../useTokenStyles'
-import { BOARD_MAX_SIZE, Board } from './Board'
+import { Board } from './Board'
 
 export interface BoardItem {
   person: Person
@@ -23,50 +23,52 @@ export function ReadOnlyBoard({ items, emptyMessage }: { items: BoardItem[]; emp
   const { lookOf, showNames } = useTokenStyles()
 
   return (
-    <div className="min-w-0 flex-1" style={{ maxWidth: BOARD_MAX_SIZE }}>
-      <Board boardRef={boardRef}>
-        {items.length === 0 && (
-          <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-slate-400">
-            {emptyMessage}
-          </p>
-        )}
-        {/* Halos are clipped to the board; tokens are not, so edge tokens stay whole. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
-          {items.map((item) =>
-            item.haloRadius !== undefined && item.haloRadius > 0 ? (
-              <div
-                key={item.person.id}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/15 ring-1 ring-sky-400/30 ${
-                  lookOf(item.person).dimmed ? 'opacity-25' : ''
-                }`}
-                style={{
-                  ...boardToPercent(item.point),
-                  width: `${item.haloRadius * 200}%`,
-                  height: `${item.haloRadius * 200}%`,
-                }}
-              />
-            ) : null,
+    <div className="board-area flex w-full justify-center">
+      <div className="board-fit">
+        <Board boardRef={boardRef}>
+          {items.length === 0 && (
+            <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-slate-400">
+              {emptyMessage}
+            </p>
           )}
-        </div>
-        {items.map((item) => {
-          const look = lookOf(item.person)
-          return (
-            <Token
-              key={item.person.id}
-              name={item.person.name}
-              {...look}
-              size={TOKEN_SIZE}
-              showLabel={showNames}
-              badge={item.badge}
-              position="absolute"
-              className={`-translate-x-1/2 -translate-y-1/2 ${look.highlighted ? 'z-20' : 'z-10 hover:z-30'} ${
-                item.provisional ? 'opacity-70 transition-[left,top] duration-75' : ''
-              }`}
-              style={boardToPercent(item.point)}
-            />
-          )
-        })}
-      </Board>
+          {/* Halos are clipped to the board; tokens are not, so edge tokens stay whole. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
+            {items.map((item) =>
+              item.haloRadius !== undefined && item.haloRadius > 0 ? (
+                <div
+                  key={item.person.id}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/15 ring-1 ring-sky-400/30 ${
+                    lookOf(item.person).dimmed ? 'opacity-25' : ''
+                  }`}
+                  style={{
+                    ...boardToPercent(item.point),
+                    width: `${item.haloRadius * 200}%`,
+                    height: `${item.haloRadius * 200}%`,
+                  }}
+                />
+              ) : null,
+            )}
+          </div>
+          {items.map((item) => {
+            const look = lookOf(item.person)
+            return (
+              <Token
+                key={item.person.id}
+                name={item.person.name}
+                {...look}
+                size={TOKEN_SIZE}
+                showLabel={showNames}
+                badge={item.badge}
+                position="absolute"
+                className={`-translate-x-1/2 -translate-y-1/2 ${look.highlighted ? 'z-20' : 'z-10 hover:z-30'} ${
+                  item.provisional ? 'opacity-70 transition-[left,top] duration-75' : ''
+                }`}
+                style={boardToPercent(item.point)}
+              />
+            )
+          })}
+        </Board>
+      </div>
     </div>
   )
 }

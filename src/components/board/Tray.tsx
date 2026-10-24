@@ -13,7 +13,7 @@ interface TrayProps {
 /** People not placed yet on my board. Dragging a placed token out of the board brings it back here. */
 export function Tray({ people, lookOf, draggingId, handlersFor }: TrayProps) {
   return (
-    <section className="flex w-full flex-col rounded-lg border border-slate-200 bg-white xl:max-h-[calc(100dvh-10rem)] xl:w-56 xl:shrink-0">
+    <section className="flex w-full flex-col rounded-lg border border-slate-200 bg-white xl:max-h-full xl:min-w-0 xl:flex-1">
       <h2 className="border-b border-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
         Sin colocar <span className="font-normal text-slate-400">({people.length})</span>
       </h2>

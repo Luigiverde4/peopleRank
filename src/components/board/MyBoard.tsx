@@ -6,7 +6,7 @@ import { placementsOf } from '../../lib/rooms'
 import { useRoomStore } from '../../store/roomStore'
 import { Token } from '../Token'
 import { useTokenStyles, type TokenLook } from '../useTokenStyles'
-import { BOARD_MAX_SIZE, Board } from './Board'
+import { Board } from './Board'
 import { Tray } from './Tray'
 import { useTokenDrag, type TokenDragHandlers } from './useTokenDrag'
 
@@ -37,8 +37,8 @@ export function MyBoard() {
   const draggedPerson = drag ? people.find((p) => p.id === drag.personId) : undefined
 
   return (
-    <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-start">
-      <div className="min-w-0 flex-1" style={{ maxWidth: BOARD_MAX_SIZE }}>
+    <div className="board-area flex w-full flex-col gap-3 xl:flex-row xl:items-start">
+      <div className="board-fit board-fit-with-tray shrink-0">
         <Board boardRef={boardRef} active={isMoving}>
           {people.map((person) => {
             const placement = mine.get(person.id)

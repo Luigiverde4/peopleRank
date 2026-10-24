@@ -9,3 +9,31 @@ body,
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
+
+/*
+ * Board sizing. Below xl the board follows the width (capped by the viewport height) and the page
+ * scrolls if needed. From xl, .board-area (the space left under the toolbar) is a size container
+ * and the board takes the largest square that fits it, leaving room for the tray when there is one.
+ * The board's axis labels add 1.5rem of width and 1.25rem of height, so width ≈ total height.
+ */
+.board-fit {
+  width: 100%;
+  max-width: min(100%, calc(100dvh - 14rem), 52rem);
+}
+
+@media (min-width: 80rem) {
+  .board-area {
+    container-type: size;
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .board-fit {
+    max-width: none;
+    width: min(100cqw, 100cqh);
+  }
+
+  .board-fit-with-tray {
+    width: min(100cqw - 15rem, 100cqh);
+  }
+}

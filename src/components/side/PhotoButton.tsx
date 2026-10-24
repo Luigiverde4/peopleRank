@@ -25,7 +25,7 @@ export function PhotoButton({ personId, personName, hasPhoto }: PhotoButtonProps
     <span className="flex shrink-0 items-center">
       <label
         title={hasPhoto ? `Cambiar la foto de ${personName}` : `Añadir foto de ${personName}`}
-        className={`cursor-pointer rounded px-1 text-xs hover:bg-slate-100 ${busy ? 'animate-pulse' : ''} ${
+        className={`relative cursor-pointer rounded px-1 text-xs hover:bg-slate-100 ${busy ? 'animate-pulse' : ''} ${
           hasPhoto ? 'text-sky-600' : 'text-slate-400'
         }`}
       >

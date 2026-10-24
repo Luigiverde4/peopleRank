@@ -22,9 +22,17 @@ import { parseGroupShortcut } from '../lib/groupShortcut'
 import { subgroupColor } from '../lib/groupTree'
 import { cleanName, normalizeName, parseNameList } from '../lib/names'
 import { resizeToWebp } from '../lib/photo'
+import { matchPhotos, photoNameFromPath } from '../lib/photoMatch'
 import { throttle } from '../lib/throttle'
 
 const REFETCH_DEBOUNCE_MS = 200
+const PHOTO_IMPORT_BATCH = 4
+
+/** A photo to import: its file name (to match a person) and a way to read it. */
+export interface PhotoSource {
+  name: string
+  load(): Promise<Blob>
+}
 const DRAG_BROADCAST_INTERVAL_MS = 1000 / 15
 
 export interface RoomState {
@@ -57,6 +65,14 @@ export interface RoomActions {
   setMembership(personId: string, groupId: string, member: boolean): Promise<void>
   /** Resizes the image to a 256×256 WebP, uploads it and links it; null removes the photo. */
   setPersonPhoto(personId: string, image: Blob | null): Promise<void>
+  /**
+   * Gives each person the photo whose file is named like them (e.g. a class photo folder).
+   * Reports progress as photos are uploaded; returns how many were assigned and the unmatched names.
+   */
+  importPhotos(
+    images: PhotoSource[],
+    onProgress?: (done: number, total: number) => void,
+  ): Promise<{ assigned: number; unmatched: string[]; failed: string[] }>
 
   /** Returns the new group id (null if the name is empty or the insert failed). */
   createGroup(name: string, color?: string, parentId?: string | null): Promise<string | null>
@@ -298,6 +314,35 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
         if (toAdd.length > 0) await backend.addMemberships(toAdd.map(asMembership))
         if (toRemove.length > 0) await backend.removeMemberships(toRemove.map(asMembership))
       })
+    },
+
+    async importPhotos(images, onProgress) {
+      const { room } = requireRoom()
+      const { matched, unmatched } = matchPhotos(images, (image) => image.name, get().people)
+      const failed: string[] = []
+      let done = 0
+      onProgress?.(0, matched.length)
+      // A few at a time: resizing runs on the main thread and each upload is a request.
+      for (let i = 0; i < matched.length; i += PHOTO_IMPORT_BATCH) {
+        await Promise.all(
+          matched.slice(i, i + PHOTO_IMPORT_BATCH).map(async ({ file, personId }) => {
+            try {
+              const path = await backend.uploadPhoto(room.id, await resizeToWebp(await file.load()))
+              await backend.setPersonPhoto(personId, path)
+            } catch {
+              failed.push(photoNameFromPath(file.name))
+            }
+            done += 1
+            onProgress?.(done, matched.length)
+          }),
+        )
+      }
+      await get().refetch('people')
+      return {
+        assigned: matched.length - failed.length,
+        unmatched: unmatched.map((image) => photoNameFromPath(image.name)),
+        failed,
+      }
     },
 
     async setMembership(personId, groupId, member) {

@@ -10,6 +10,7 @@ import { useGroupTree } from '../useGroupTree'
 import { useTokenStyles } from '../useTokenStyles'
 import { GroupPicker } from './GroupPicker'
 import { PhotoButton } from './PhotoButton'
+import { PhotoImport } from './PhotoImport'
 
 export function PeopleTab() {
   const people = useRoomStore((s) => s.people)
@@ -26,6 +27,7 @@ export function PeopleTab() {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <AddPeopleForm />
+      <PhotoImport />
       <p className="text-xs text-slate-500">
         {people.length} personas{visible.length !== people.length && ` · ${visible.length} coinciden con la búsqueda`}
       </p>

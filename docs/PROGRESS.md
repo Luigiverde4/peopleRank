@@ -74,6 +74,11 @@ Verificado en el navegador:
   - `verify:rls` suma 8 comprobaciones del modo General (37 en total), todas en verde.
   - Probado en el navegador con dos usuarios: lo que coloca o mueve uno aparece al instante en la pantalla del otro.
 - Selector de miembros por grupo, nombre de sala opcional y tablero ajustado al espacio disponible.
+- **Zoom y desplazamiento** en todos los tableros (`src/lib/viewport.ts` con tests, `useBoardViewport`). Verificado en el navegador:
+  - Con el zoom al 225 %, una ficha soltada en el punto calculado se guarda en esa coordenada exacta.
+  - Arrastrar el fondo desplaza la vista exactamente lo arrastrado.
+  - La rueda acerca sin desplazar la página.
+  - En el consenso, las fichas que se pisaban se separan.
 
 ## Problemas conocidos
 

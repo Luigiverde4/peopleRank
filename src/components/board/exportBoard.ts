@@ -9,7 +9,12 @@ export async function renderVisibleBoard(): Promise<string | null> {
   if (!target) return null
   const canvas = target.querySelector('canvas')
   if (canvas) return canvas.toDataURL('image/png')
-  return toPng(target, { backgroundColor: '#ffffff', pixelRatio: 2, cacheBust: true })
+  return toPng(target, {
+    backgroundColor: '#ffffff',
+    pixelRatio: 2,
+    cacheBust: true,
+    filter: (node) => !(node instanceof HTMLElement && node.dataset.exportIgnore !== undefined),
+  })
 }
 
 export async function downloadVisibleBoard(fileName: string): Promise<void> {

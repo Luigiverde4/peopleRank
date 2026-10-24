@@ -8,6 +8,7 @@ import { Token } from '../Token'
 import { useTokenStyles, type TokenLook } from '../useTokenStyles'
 import { Board } from './Board'
 import { Tray } from './Tray'
+import { useBoardViewport } from './useBoardViewport'
 import { useTokenDrag, type TokenDragHandlers } from './useTokenDrag'
 
 const BOARD_TOKEN_SIZE = 34
@@ -57,13 +58,14 @@ export function MyBoard() {
   const dragPerson = useRoomStore((s) => s.dragPerson)
   const { lookOf, showNames } = useTokenStyles()
   const { positions, movingByOthers } = useEditableBoard()
+  const viewport = useBoardViewport(boardRef)
 
   const unplaced = useMemo(
     () => people.filter((p) => !positions.has(p.id) && !movingByOthers.has(p.id)),
     [people, positions, movingByOthers],
   )
 
-  const { drag, isMoving, handlersFor } = useTokenDrag(boardRef, {
+  const { drag, isMoving, handlersFor } = useTokenDrag(viewport.boardPointAt, {
     onMove: dragPerson,
     onDrop(personId, point) {
       if (point) void placePerson(personId, point)
@@ -76,7 +78,7 @@ export function MyBoard() {
   return (
     <div className="board-area flex w-full flex-col gap-3 xl:flex-row xl:items-start">
       <div className="board-fit board-fit-with-tray shrink-0">
-        <Board boardRef={boardRef} active={isMoving}>
+        <Board boardRef={boardRef} viewport={viewport} active={isMoving}>
           {people.map((person) => {
             const moving = movingByOthers.get(person.id)
             const point = moving?.point ?? positions.get(person.id)

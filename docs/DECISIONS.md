@@ -58,6 +58,14 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Zoom y desplazamiento del tablero
+
+- **Las fichas no crecen con el zoom:** lo que se amplía es el espacio entre ellas, que es lo que desatasca un tablero lleno. Los halos del consenso sí escalan, porque son distancias del tablero.
+- **Controles:** la rueda acerca hacia el cursor; arrastrar el fondo desplaza; dos dedos pellizcan; botones −, + y «Ajustar». Zoom de 100 % a 600 %; la vista nunca sale del tablero.
+- **Vista personal:** cada uno tiene su zoom, tampoco en modo General se comparte. Cambiar de vista vuelve a 100 %.
+- **Exportar PNG:** exporta lo que se ve (con el zoom aplicado), sin los controles.
+- **Táctil:** el tablero tiene `touch-action: none` para que pellizcar y arrastrar no muevan la página; en el móvil la página se desplaza tocando fuera del tablero.
+
 ## Modos de juego
 
 - **Fijo por sala:** se elige al crearla (por defecto, General) y no se puede cambiar.

@@ -1,5 +1,5 @@
-import { useRef, useState, type PointerEvent, type RefObject } from 'react'
-import { clamp01, clientToBoard, isInsideBoard, type BoardPoint } from '../../lib/geometry'
+import { useRef, useState, type PointerEvent } from 'react'
+import type { BoardPoint } from '../../lib/geometry'
 
 /** Pointer movement (px) below which a press counts as a click, not a drag. */
 const DRAG_THRESHOLD_PX = 4
@@ -32,20 +32,17 @@ export interface TokenDragHandlers {
  * token keeps receiving events wherever the pointer goes (board, tray or
  * outside), so it works the same with mouse and touch.
  */
-export function useTokenDrag(boardRef: RefObject<HTMLElement | null>, callbacks: TokenDragCallbacks) {
+export function useTokenDrag(
+  /** Board point under a viewport position (zoom-aware), or null outside the board. */
+  boardPointAt: (clientX: number, clientY: number) => BoardPoint | null,
+  callbacks: TokenDragCallbacks,
+) {
   const [drag, setDrag] = useState<DragState | null>(null)
   const dragRef = useRef<DragState | null>(null)
 
   const update = (next: DragState | null) => {
     dragRef.current = next
     setDrag(next)
-  }
-
-  const boardPointAt = (clientX: number, clientY: number): BoardPoint | null => {
-    const rect = boardRef.current?.getBoundingClientRect()
-    if (!rect) return null
-    const point = clientToBoard(clientX, clientY, rect)
-    return isInsideBoard(point) ? { x: clamp01(point.x), y: clamp01(point.y) } : null
   }
 
   const hasMoved = (state: DragState) =>
@@ -55,6 +52,8 @@ export function useTokenDrag(boardRef: RefObject<HTMLElement | null>, callbacks:
     onPointerDown(event: PointerEvent<HTMLDivElement>) {
       if (event.button !== 0 || dragRef.current) return
       event.preventDefault()
+      // Otherwise the board behind would start panning and steal the pointer capture.
+      event.stopPropagation()
       event.currentTarget.setPointerCapture(event.pointerId)
       const { clientX, clientY, pointerId } = event
       update({ personId, pointerId, clientX, clientY, startX: clientX, startY: clientY })

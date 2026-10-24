@@ -4,6 +4,7 @@ import { boardToPercent, type BoardPoint } from '../../lib/geometry'
 import { Token } from '../Token'
 import { useTokenStyles } from '../useTokenStyles'
 import { Board } from './Board'
+import { useBoardViewport } from './useBoardViewport'
 
 export interface BoardItem {
   person: Person
@@ -21,11 +22,12 @@ const TOKEN_SIZE = 34
 export function ReadOnlyBoard({ items, emptyMessage }: { items: BoardItem[]; emptyMessage: string }) {
   const boardRef = useRef<HTMLDivElement>(null)
   const { lookOf, showNames } = useTokenStyles()
+  const viewport = useBoardViewport(boardRef)
 
   return (
     <div className="board-area flex w-full justify-center">
       <div className="board-fit">
-        <Board boardRef={boardRef}>
+        <Board boardRef={boardRef} viewport={viewport}>
           {items.length === 0 && (
             <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-slate-400">
               {emptyMessage}

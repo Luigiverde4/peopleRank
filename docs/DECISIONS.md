@@ -58,6 +58,14 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Fotos, exportar e importar
+
+- **Importación de fotos por nombre de fichero:** cada foto va a la persona que se llama igual (sin distinguir tildes, mayúsculas ni espacios). Se redimensiona a WebP en el navegador y se sube en lotes de 4 con progreso. Las que no casan se listan.
+- **Fotos de la orla como preset local:** `presets/orla_fotos/` (cualquier subcarpeta) aparece como botón «Cargar fotos de la orla». Está en `.gitignore` (personas reales); en producción se usa «Importar fotos…» con los ficheros.
+- **Sesión en JSON:** formato propio versionado (`peopleRank-session`, v1) que se valida al leerlo; las filas rotas se descartan. Importar crea una sala nueva del mismo modo: en General se recupera el tablero común; en VS, solo las colocaciones de quien exportó (pasan a ser del que importa), porque las identidades anónimas de los demás no se pueden trasladar. No incluye las fotos.
+- **Informe HTML:** un único fichero sin dependencias, con los tableros en SVG (fotos incrustadas como data URL) y las tablas. Respeta el tema claro u oscuro del sistema de quien lo abre. Nombres, colores y fotos se sanean antes de escribirlos.
+- **Controles del tablero agrupados** en un solo bloque: vistas, zoom y exportar arriba; búsqueda, nombres y filtro de grupos debajo. Las explicaciones de las vistas pasan a ser tooltips.
+
 ## Subgrupos y puentes
 
 - **Dos niveles:** grupo principal y subgrupos (p. ej., dentro del grupo A, las tres chicas más amigas). Lo impone un trigger en la base (`check_group_depth`) y la misma regla en el backend de memoria.

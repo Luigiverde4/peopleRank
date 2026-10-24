@@ -80,6 +80,17 @@ Verificado en el navegador:
   - La rueda acerca sin desplazar la página.
   - En el consenso, las fichas que se pisaban se separan.
 
+- **Modo oscuro** con selector Sistema / Claro / Oscuro (a nivel de paleta).
+- **Subgrupos** de dos niveles con herencia de pertenencia (migración `20261024170000_subgroups.sql`).
+- **Puentes manuales** entre grupos (migración `20261024190000_bridges.sql`); el cálculo automático se ha quitado.
+- **Importación de fotos** por nombre de fichero y preset local de la orla (52 de 52 asignadas en la prueba).
+- **Exportar** PNG, sesión JSON e informe HTML; **importar** una sesión en una sala nueva (probado de punta a punta).
+- `verify:rls` cubre también el tablero común y los puentes: 42 comprobaciones en verde. 101 tests de Vitest.
+
+## Incidente: fotos subidas por error
+
+Un `git add -A` incluyó `presets/orla_fotos/` y `presets/orla_fotos.zip` en el commit `2f74bb3` (repo público). Se retiraron del repo, se añadieron a `.gitignore` y se reescribió el historial de `main` con force push (los hashes desde ese commit cambiaron). GitHub sigue sirviendo el commit antiguo por su hash hasta que su recolección de basura lo elimine; para borrarlo ya hay que pedirlo a GitHub Support. Desde entonces los commits añaden ficheros por ruta.
+
 ## Problemas conocidos
 
 - Con más de ~100 fichas el tablero se satura visualmente; la búsqueda y el filtro ayudan a encontrar a alguien.

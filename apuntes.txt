@@ -1,3 +1,0 @@
-1. Los controles del grafico estan dispersos por la pantalla, se deberian agrupar en un solo lugar para mejorar la experiencia del usuario.
-2. Ya tenemos las imagenes, como las implementamos?
-3.

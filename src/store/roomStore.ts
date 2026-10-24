@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { backend } from '../data'
 import type { RoomConnection } from '../data/backend'
 import type {
+  Bridge,
   DragMessage,
   Group,
   Membership,
@@ -16,6 +17,7 @@ import type {
 import { ROOM_TABLES } from '../data/types'
 import { nextGroupColor } from '../lib/colors'
 import type { BoardPoint } from '../lib/geometry'
+import { normalizeBridge, sameBridge, type BridgeLink } from '../lib/bridges'
 import { parseGroupShortcut } from '../lib/groupShortcut'
 import { subgroupColor } from '../lib/groupTree'
 import { cleanName, normalizeName, parseNameList } from '../lib/names'
@@ -37,6 +39,7 @@ export interface RoomState {
   placements: Placement[]
   /** Shared board of a 'general' room. */
   sharedPlacements: SharedPlacement[]
+  bridges: Bridge[]
   online: PresenceEntry[]
   /** Provisional positions from other participants' drags, keyed by `${participantId}:${personId}`. */
   liveDrags: Record<string, DragMessage>
@@ -61,6 +64,10 @@ export interface RoomActions {
   deleteGroup(groupId: string): Promise<void>
   applyGroupShortcut(text: string): Promise<{ groups: number; people: number }>
 
+  /** Marks a person of group A and a person of group B as a bridge between both groups. */
+  addBridge(bridge: BridgeLink): Promise<void>
+  removeBridge(bridgeId: string): Promise<void>
+
   /** Drag, place and unplace act on my board in 'vs' rooms and on the shared board in 'general' rooms. */
   dragPerson(personId: string, point: BoardPoint | null): void
   placePerson(personId: string, point: BoardPoint): Promise<void>
@@ -83,6 +90,7 @@ const initialState: RoomState = {
   memberships: [],
   placements: [],
   sharedPlacements: [],
+  bridges: [],
   online: [],
   liveDrags: {},
 }
@@ -234,6 +242,9 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
           set({ placements, liveDrags: {} })
           break
         }
+        case 'bridges':
+          set({ bridges: await backend.fetchBridges(roomId) })
+          break
         case 'shared_placements': {
           if (mode !== 'general') break
           set({ sharedPlacements: await backend.fetchSharedPlacements(roomId), liveDrags: {} })
@@ -267,7 +278,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
         placements: state.placements.filter((p) => p.personId !== personId),
         sharedPlacements: state.sharedPlacements.filter((p) => p.personId !== personId),
       }))
-      await mutate(['people', 'person_groups', 'placements', 'shared_placements', 'participants'], () =>
+      await mutate(['people', 'person_groups', 'placements', 'shared_placements', 'bridges', 'participants'], () =>
         backend.deletePerson(personId),
       )
     },
@@ -334,7 +345,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
         groups: state.groups.filter((g) => g.id !== groupId),
         memberships: state.memberships.filter((m) => m.groupId !== groupId),
       }))
-      await mutate(['groups', 'person_groups'], () => backend.deleteGroup(groupId))
+      await mutate(['groups', 'person_groups', 'bridges'], () => backend.deleteGroup(groupId))
     },
 
     async applyGroupShortcut(text) {
@@ -372,6 +383,21 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
         await backend.addMemberships(memberships)
       })
       return counts
+    },
+
+    async addBridge(link) {
+      const { room } = requireRoom()
+      const bridge = normalizeBridge(link)
+      if (get().bridges.some((existing) => sameBridge(existing, bridge))) {
+        set({ error: 'Ese puente ya existe' })
+        return
+      }
+      await mutate(['bridges'], () => backend.createBridge({ ...bridge, roomId: room.id }))
+    },
+
+    async removeBridge(bridgeId) {
+      set((state) => ({ bridges: state.bridges.filter((b) => b.id !== bridgeId) }))
+      await mutate(['bridges'], () => backend.deleteBridge(bridgeId))
     },
 
     dragPerson(personId, point) {

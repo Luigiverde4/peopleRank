@@ -108,7 +108,10 @@ async function main(): Promise<void> {
   })
   expect(!createError && typeof slug === 'string' && slug.length >= 12, 'A creates a room through create_room')
 
-  const { data: directInsert } = await a.client.from('rooms').insert({ slug: 'x'.repeat(14), name: 'x', created_by: a.userId }).select()
+  const { data: directInsert } = await a.client
+    .from('rooms')
+    .insert({ slug: 'x'.repeat(14), name: 'x', created_by: a.userId })
+    .select()
   expect(!directInsert || directInsert.length === 0, 'rooms cannot be inserted directly')
 
   const { data: hiddenRooms } = await b.client.from('rooms').select('*')
@@ -163,7 +166,10 @@ async function main(): Promise<void> {
   expect((forgedUpdate ?? []).length === 0, "B cannot update A's placement")
   await b.client.from('placements').delete().eq('participant_id', participantA)
   const { data: stillThere } = await a.client.from('placements').select('x').eq('participant_id', participantA)
-  expect(stillThere?.length === 1 && Math.abs((stillThere[0]!.x as number) - 0.2) < 1e-6, "B cannot delete A's placement")
+  expect(
+    stillThere?.length === 1 && Math.abs((stillThere[0]!.x as number) - 0.2) < 1e-6,
+    "B cannot delete A's placement",
+  )
 
   const { data: forgedParticipant } = await b.client
     .from('participants')
@@ -186,7 +192,10 @@ async function main(): Promise<void> {
 
   // Realtime (give the server a moment to deliver).
   await wait(1500)
-  expect(listenerB.events.some((e) => e.table === 'people'), 'B receives a realtime event when A adds a person')
+  expect(
+    listenerB.events.some((e) => e.table === 'people'),
+    'B receives a realtime event when A adds a person',
+  )
   expect(
     listenerB.events.some((e) => e.table === 'placements' && e.participantId === participantB),
     'B receives realtime events for its own placements',
@@ -256,6 +265,37 @@ async function main(): Promise<void> {
     updated_by: null,
   })
   expect(outsiderShared !== null, 'outsider C cannot move the shared board')
+
+  // Bridges marked by hand between two groups.
+  const { data: twoGroups } = await a.client
+    .from('groups')
+    .insert([
+      { room_id: generalId, name: 'Grupo A', color: '#e11d48' },
+      { room_id: generalId, name: 'Grupo B', color: '#2563eb' },
+    ])
+    .select('id')
+  const { data: otherPerson } = await a.client
+    .from('people')
+    .insert({ room_id: generalId, name: 'Persona puente' })
+    .select()
+    .single()
+  const bridgeRow = {
+    room_id: generalId,
+    group_a_id: twoGroups![0]!.id,
+    group_b_id: twoGroups![1]!.id,
+    person_a_id: generalPerson.id,
+    person_b_id: otherPerson.id,
+  }
+  const { error: bridgeByB } = await b.client.from('bridges').insert(bridgeRow)
+  expect(!bridgeByB, 'a member marks a bridge between two groups')
+  expect((await count(a.client, 'bridges', generalId)) === 1, 'other members see the bridge')
+  const { error: duplicateBridge } = await a.client.from('bridges').insert(bridgeRow)
+  expect(duplicateBridge !== null, 'the same bridge cannot be added twice')
+  expect((await count(c.client, 'bridges', generalId)) === 0, 'outsider C does not see the bridges')
+  const { error: outsiderBridge } = await c.client
+    .from('bridges')
+    .insert({ ...bridgeRow, person_a_id: otherPerson.id, person_b_id: generalPerson.id })
+  expect(outsiderBridge !== null, 'outsider C cannot add bridges')
 
   await a.client.removeAllChannels()
   await b.client.removeAllChannels()

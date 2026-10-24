@@ -15,6 +15,8 @@ const CANVAS_COLORS = {
   dark: { background: '#131b2e', node: '#1e293b', text: '#e2e8f0' },
 }
 
+const BRIDGE_COLOR = '#f59e0b'
+
 const NODE_RADIUS = 7
 const RING_WIDTH = 2
 
@@ -29,11 +31,14 @@ interface GraphLinkDatum {
   target: string
   color: string
   width: number
+  /** Marked by hand as a bridge between two groups. */
+  bridge: boolean
 }
 
 /** People as nodes, linked when they share a group; link color = shared group. */
 export default function GroupGraph() {
   const people = useRoomStore((s) => s.people)
+  const bridges = useRoomStore((s) => s.bridges)
   const { orderedGroups: groups, effectiveMemberships: memberships } = useGroupTree()
   const { lookOf } = useTokenStyles()
   const colors = CANVAS_COLORS[useThemeStore((s) => s.resolved)]
@@ -48,20 +53,31 @@ export default function GroupGraph() {
     const { links } = groupGraph(people, groups, memberships)
     return {
       nodes: people.map<GraphNode>((person) => ({ id: person.id, name: person.name, person })),
-      links: links.map<GraphLinkDatum>((link) => ({
-        source: link.source,
-        target: link.target,
-        color: colorOf.get(link.groupIds[0]!) ?? NO_GROUP_COLOR,
-        width: link.groupIds.length,
-      })),
+      links: links
+        .map<GraphLinkDatum>((link) => ({
+          source: link.source,
+          target: link.target,
+          color: colorOf.get(link.groupIds[0]!) ?? NO_GROUP_COLOR,
+          width: link.groupIds.length,
+          bridge: false,
+        }))
+        .concat(
+          bridges.map((bridge) => ({
+            source: bridge.personAId,
+            target: bridge.personBId,
+            color: BRIDGE_COLOR,
+            width: 2,
+            bridge: true,
+          })),
+        ),
     }
-  }, [people, groups, memberships])
+  }, [people, groups, memberships, bridges])
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
       <p className="text-xs text-slate-500">
-        Cada línea une a dos personas que comparten grupo (color del grupo; más gruesa si comparten varios). Arrastra
-        para mover, rueda para hacer zoom.
+        Cada línea une a dos personas que comparten grupo (color del grupo; más gruesa si comparten varios). Las líneas
+        discontinuas naranjas son los puentes marcados a mano. Arrastra para mover, rueda para hacer zoom.
       </p>
       <div className="board-area flex w-full justify-center">
         <div
@@ -78,7 +94,8 @@ export default function GroupGraph() {
               backgroundColor={colors.background}
               nodeLabel={(node) => node.name}
               nodeRelSize={NODE_RADIUS}
-              linkColor={(link) => `${link.color}66`}
+              linkColor={(link) => (link.bridge ? link.color : `${link.color}66`)}
+              linkLineDash={(link) => (link.bridge ? [4, 3] : null)}
               linkWidth={(link) => link.width}
               nodeCanvasObject={(node, context, scale) => drawNode(node, lookOf(node.person), colors, context, scale)}
               nodePointerAreaPaint={(node, color, context) => {

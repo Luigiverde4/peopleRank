@@ -3,6 +3,7 @@ import type { Participant } from '../../data/types'
 import { similarityFromDistance } from '../../lib/metrics'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
+import { BridgeList } from '../side/BridgeList'
 import { useRoomMetrics } from '../useRoomMetrics'
 
 /** Coordinates and distances shown on a 0–100 scale. */
@@ -41,6 +42,9 @@ export function StatsPanel() {
     <aside className="rounded-lg border border-slate-200 bg-surface px-3 py-1 xl:max-h-[calc(100dvh-6rem)] xl:w-80 xl:shrink-0 xl:overflow-y-auto">
       <h2 className="py-2 text-base font-semibold">Estadísticas</h2>
       <GroupStatsSection />
+      <Section title="Puentes" hint="Personas que conectan dos grupos (se marcan en la pestaña Grupos).">
+        <BridgeList />
+      </Section>
       {/* Comparing voters only makes sense with individual boards. */}
       {mode === 'general' ? null : revealed ? (
         <>

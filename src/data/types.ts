@@ -58,6 +58,17 @@ export interface Placement {
   updatedAt: string
 }
 
+/** A person of group A who connects with a person of group B (marked by hand). */
+export interface Bridge {
+  id: string
+  roomId: string
+  groupAId: string
+  groupBId: string
+  personAId: string
+  personBId: string
+  createdAt: string
+}
+
 /** A person's position on the shared board of a 'general' room. */
 export interface SharedPlacement {
   roomId: string
@@ -78,6 +89,7 @@ export type RoomTable =
   | 'person_groups'
   | 'placements'
   | 'shared_placements'
+  | 'bridges'
 
 export const ROOM_TABLES: RoomTable[] = [
   'rooms',
@@ -87,6 +99,7 @@ export const ROOM_TABLES: RoomTable[] = [
   'person_groups',
   'placements',
   'shared_placements',
+  'bridges',
 ]
 
 export interface PresenceEntry {

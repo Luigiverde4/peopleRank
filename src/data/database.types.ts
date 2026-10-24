@@ -23,7 +23,51 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "groups": {
+            "bridges": {
+                  Row: {
+                    "created_at": string,"group_a_id": string,"group_b_id": string,"id": string,"person_a_id": string,"person_b_id": string,"room_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"group_a_id": string,"group_b_id": string,"id"?: string,"person_a_id": string,"person_b_id": string,"room_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"group_a_id"?: string,"group_b_id"?: string,"id"?: string,"person_a_id"?: string,"person_b_id"?: string,"room_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bridges_group_a_id_room_id_fkey"
+      columns: ["group_a_id","room_id"]
+isOneToOne: false
+      referencedRelation: "groups"
+      referencedColumns: ["id","room_id"]
+    },{
+      foreignKeyName: "bridges_group_b_id_room_id_fkey"
+      columns: ["group_b_id","room_id"]
+isOneToOne: false
+      referencedRelation: "groups"
+      referencedColumns: ["id","room_id"]
+    },{
+      foreignKeyName: "bridges_person_a_id_room_id_fkey"
+      columns: ["person_a_id","room_id"]
+isOneToOne: false
+      referencedRelation: "people"
+      referencedColumns: ["id","room_id"]
+    },{
+      foreignKeyName: "bridges_person_b_id_room_id_fkey"
+      columns: ["person_b_id","room_id"]
+isOneToOne: false
+      referencedRelation: "people"
+      referencedColumns: ["id","room_id"]
+    },{
+      foreignKeyName: "bridges_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"groups": {
                   Row: {
                     "color": string,"created_at": string,"id": string,"name": string,"parent_id": string | null,"room_id": string
                   }

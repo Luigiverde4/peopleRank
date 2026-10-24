@@ -2,6 +2,7 @@ import type { DataBackend, RoomConnection, RoomEventHandlers, RoomMembership } f
 import { newId, newSlug } from './ids'
 import {
   ROOM_TABLES,
+  type Bridge,
   type Group,
   type Membership,
   type Participant,
@@ -28,6 +29,7 @@ interface MemoryDb {
   memberships: Membership[]
   placements: Placement[]
   sharedPlacements: SharedPlacement[]
+  bridges: Bridge[]
   /** Photo path -> data URL. */
   photos: Record<string, string>
 }
@@ -42,6 +44,7 @@ function emptyDb(): MemoryDb {
     memberships: [],
     placements: [],
     sharedPlacements: [],
+    bridges: [],
     photos: {},
   }
 }
@@ -206,6 +209,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
         current.memberships = current.memberships.filter((m) => m.personId !== personId)
         current.placements = current.placements.filter((p) => p.personId !== personId)
         current.sharedPlacements = current.sharedPlacements.filter((p) => p.personId !== personId)
+        current.bridges = current.bridges.filter((b) => b.personAId !== personId && b.personBId !== personId)
         for (const participant of current.participants) {
           if (participant.personId === personId) participant.personId = null
         }
@@ -244,7 +248,33 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
         // Like the database: subgroups of a deleted group become top-level groups.
         for (const group of current.groups) if (group.parentId === groupId) group.parentId = null
         current.groups = current.groups.filter((g) => g.id !== groupId)
+        current.bridges = current.bridges.filter((b) => b.groupAId !== groupId && b.groupBId !== groupId)
         current.memberships = current.memberships.filter((m) => m.groupId !== groupId)
+      })
+    },
+
+    async fetchBridges(roomId) {
+      db = loadDb()
+      return db.bridges.filter((b) => b.roomId === roomId)
+    },
+
+    async createBridge(bridge) {
+      mutate((current) => {
+        const duplicate = current.bridges.some(
+          (b) =>
+            b.groupAId === bridge.groupAId &&
+            b.groupBId === bridge.groupBId &&
+            b.personAId === bridge.personAId &&
+            b.personBId === bridge.personBId,
+        )
+        if (duplicate) throw new Error('Ese puente ya existe')
+        current.bridges.push({ ...bridge, id: newId(), createdAt: now() })
+      })
+    },
+
+    async deleteBridge(bridgeId) {
+      mutate((current) => {
+        current.bridges = current.bridges.filter((b) => b.id !== bridgeId)
       })
     },
 

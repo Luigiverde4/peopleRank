@@ -5,6 +5,7 @@ import { defaultGroupColor, useRoomStore } from '../../store/roomStore'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { InlineEdit } from '../ui/InlineEdit'
 import { useGroupTree } from '../useGroupTree'
+import { BridgesEditor } from './BridgesEditor'
 import { GroupMembersPicker } from './GroupMembersPicker'
 
 export function GroupsTab() {
@@ -34,6 +35,13 @@ export function GroupsTab() {
           />
         ))}
       </ul>
+      <details open className="border-t border-slate-100 pt-3">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700">Puentes entre grupos</summary>
+        <p className="mb-2 mt-1 text-xs text-slate-500">
+          Una persona de un grupo que conecta con otra de otro grupo. Elige los dos grupos y una persona de cada uno.
+        </p>
+        <BridgesEditor />
+      </details>
       <GroupShortcutForm />
     </div>
   )

@@ -1,5 +1,6 @@
 import type { Tables } from './database.types'
 import type {
+  Bridge,
   GameMode,
   Group,
   Membership,
@@ -80,6 +81,18 @@ export function toSharedPlacement(row: Tables<'shared_placements'>): SharedPlace
     y: row.y,
     updatedBy: row.updated_by,
     updatedAt: row.updated_at,
+  }
+}
+
+export function toBridge(row: Tables<'bridges'>): Bridge {
+  return {
+    id: row.id,
+    roomId: row.room_id,
+    groupAId: row.group_a_id,
+    groupBId: row.group_b_id,
+    personAId: row.person_a_id,
+    personBId: row.person_b_id,
+    createdAt: row.created_at,
   }
 }
 

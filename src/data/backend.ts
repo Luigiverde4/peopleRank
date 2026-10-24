@@ -1,4 +1,5 @@
 import type {
+  Bridge,
   DragMessage,
   GameMode,
   SharedPlacement,
@@ -73,6 +74,10 @@ export interface DataBackend {
   createGroup(roomId: string, name: string, color: string, parentId?: string | null): Promise<Group>
   updateGroup(groupId: string, patch: GroupPatch): Promise<void>
   deleteGroup(groupId: string): Promise<void>
+
+  fetchBridges(roomId: string): Promise<Bridge[]>
+  createBridge(bridge: Omit<Bridge, 'id' | 'createdAt'>): Promise<void>
+  deleteBridge(bridgeId: string): Promise<void>
 
   addMemberships(memberships: Membership[]): Promise<void>
   removeMemberships(memberships: Membership[]): Promise<void>

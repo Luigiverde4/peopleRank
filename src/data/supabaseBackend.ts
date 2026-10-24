@@ -4,6 +4,7 @@ import type { Database } from './database.types'
 import { newId } from './ids'
 import {
   presenceEntries,
+  toBridge,
   toGroup,
   toMembership,
   toParticipant,
@@ -152,7 +153,13 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
 
     async createGroup(roomId, name, color, parentId = null) {
       return toGroup(
-        check(await client.from('groups').insert({ room_id: roomId, name, color, parent_id: parentId }).select('*').single()),
+        check(
+          await client
+            .from('groups')
+            .insert({ room_id: roomId, name, color, parent_id: parentId })
+            .select('*')
+            .single(),
+        ),
       )
     },
 
@@ -167,6 +174,26 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
 
     async deleteGroup(groupId) {
       check(await client.from('groups').delete().eq('id', groupId))
+    },
+
+    async fetchBridges(roomId) {
+      return check(await client.from('bridges').select('*').eq('room_id', roomId).order('created_at')).map(toBridge)
+    },
+
+    async createBridge(bridge) {
+      check(
+        await client.from('bridges').insert({
+          room_id: bridge.roomId,
+          group_a_id: bridge.groupAId,
+          group_b_id: bridge.groupBId,
+          person_a_id: bridge.personAId,
+          person_b_id: bridge.personBId,
+        }),
+      )
+    },
+
+    async deleteBridge(bridgeId) {
+      check(await client.from('bridges').delete().eq('id', bridgeId))
     },
 
     async addMemberships(memberships) {

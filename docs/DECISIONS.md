@@ -64,7 +64,10 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Herencia derivada, no guardada:** se guarda la pertenencia directa; estar en un subgrupo cuenta como estar en el grupo principal en el filtro, el tamaño, las estadísticas y el grafo (`expandMemberships`). En el selector de miembros del grupo principal, quien está por un subgrupo aparece marcado y bloqueado («por subgrupo»).
 - **Anillo de la ficha:** muestra el subgrupo y no repite el grupo principal. Un subgrupo nuevo toma por defecto un tono más claro u oscuro del color de su grupo.
 - **Borrar un grupo principal** no borra sus subgrupos: pasan a ser grupos principales.
-- **Puentes:** el cálculo automático (personas en dos grupos) se ha quitado a petición del usuario, porque es poco común. Los puentes pasan a marcarse a mano: una persona del grupo A y otra del grupo B.
+- **Puentes:** el cálculo automático (personas en dos grupos) se ha quitado a petición del usuario, porque es poco común. Los puentes se marcan a mano en la pestaña Grupos: se eligen el grupo A y el grupo B, y una persona de cada uno (solo se ofrecen sus miembros, subgrupos incluidos). Tabla `bridges`.
+  - Se guardan con los dos grupos en orden fijo, así A↔B y B↔A son el mismo puente y la base impide duplicarlo.
+  - Si después alguien deja el grupo, el puente se mantiene; si se borra la persona o el grupo, se borra.
+  - Se ven en las estadísticas, agrupados por pareja de grupos, y en el grafo como línea discontinua naranja.
 
 ## Modo oscuro
 

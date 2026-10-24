@@ -22,8 +22,22 @@ export function RoomHeader() {
       )}
       <OnlineList />
       <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-2">
-        <RevealStatus />
-        <WhoAmISelect />
+        {room.mode === 'general' ? (
+          <span
+            className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
+            title="Un único tablero que movéis todos"
+          >
+            Modo General
+          </span>
+        ) : (
+          <>
+            <span className="rounded bg-violet-50 px-2 py-0.5 text-xs text-violet-700" title="Cada uno en su tablero">
+              Modo VS
+            </span>
+            <RevealStatus />
+            <WhoAmISelect />
+          </>
+        )}
       </div>
     </header>
   )

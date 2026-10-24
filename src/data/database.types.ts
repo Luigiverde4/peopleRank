@@ -155,17 +155,49 @@ isOneToOne: false
                   ]
                 },"rooms": {
                   Row: {
-                    "created_at": string,"created_by": string,"id": string,"name": string,"revealed": boolean,"slug": string
+                    "created_at": string,"created_by": string,"id": string,"mode": string,"name": string,"revealed": boolean,"slug": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by": string,"id"?: string,"name": string,"revealed"?: boolean,"slug": string
+                    "created_at"?: string,"created_by": string,"id"?: string,"mode"?: string,"name": string,"revealed"?: boolean,"slug": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string,"id"?: string,"name"?: string,"revealed"?: boolean,"slug"?: string
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"mode"?: string,"name"?: string,"revealed"?: boolean,"slug"?: string
                   }
                   Relationships: [
                     
+                  ]
+                },"shared_placements": {
+                  Row: {
+                    "person_id": string,"room_id": string,"updated_at": string,"updated_by": string | null,"x": number,"y": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "person_id": string,"room_id": string,"updated_at"?: string,"updated_by"?: string | null,"x": number,"y": number
+                  }
+                  Update: {
+                    "person_id"?: string,"room_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"x"?: number,"y"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shared_placements_person_id_room_id_fkey"
+      columns: ["person_id","room_id"]
+isOneToOne: false
+      referencedRelation: "people"
+      referencedColumns: ["id","room_id"]
+    },{
+      foreignKeyName: "shared_placements_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "rooms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shared_placements_updated_by_room_id_fkey"
+      columns: ["updated_by","room_id"]
+isOneToOne: false
+      referencedRelation: "participants"
+      referencedColumns: ["id","room_id"]
+    }
                   ]
                 }
           }
@@ -174,10 +206,13 @@ isOneToOne: false
           }
           Functions: {
             "create_room":
-{ Args: { "display_name": string,"name": string }; Returns: string
+{ Args: { "display_name": string,"mode"?: string,"name": string }; Returns: string
                            },
 "generate_slug":
 { Args: { "len"?: number }; Returns: string
+                           },
+"is_general_room":
+{ Args: { "room": string }; Returns: boolean
                            },
 "is_member_of_photo_room":
 { Args: { "object_name": string }; Returns: boolean
@@ -193,6 +228,7 @@ isOneToOne: false
               "created_at": string,
 "created_by": string,
 "id": string,
+"mode": string,
 "name": string,
 "revealed": boolean,
 "slug": string

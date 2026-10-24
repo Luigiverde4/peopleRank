@@ -11,7 +11,9 @@ import type {
   PresenceEntry,
   Room,
   RoomTable,
+  SharedPlacement,
 } from '../data/types'
+import { ROOM_TABLES } from '../data/types'
 import { nextGroupColor } from '../lib/colors'
 import type { BoardPoint } from '../lib/geometry'
 import { parseGroupShortcut } from '../lib/groupShortcut'
@@ -32,6 +34,8 @@ export interface RoomState {
   groups: Group[]
   memberships: Membership[]
   placements: Placement[]
+  /** Shared board of a 'general' room. */
+  sharedPlacements: SharedPlacement[]
   online: PresenceEntry[]
   /** Provisional positions from other participants' drags, keyed by `${participantId}:${personId}`. */
   liveDrags: Record<string, DragMessage>
@@ -56,6 +60,7 @@ export interface RoomActions {
   deleteGroup(groupId: string): Promise<void>
   applyGroupShortcut(text: string): Promise<{ groups: number; people: number }>
 
+  /** Drag, place and unplace act on my board in 'vs' rooms and on the shared board in 'general' rooms. */
   dragPerson(personId: string, point: BoardPoint | null): void
   placePerson(personId: string, point: BoardPoint): Promise<void>
   unplacePerson(personId: string): Promise<void>
@@ -76,6 +81,7 @@ const initialState: RoomState = {
   groups: [],
   memberships: [],
   placements: [],
+  sharedPlacements: [],
   online: [],
   liveDrags: {},
 }
@@ -110,11 +116,40 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
   }
 
   const refetchAll = async () => {
-    const tables: RoomTable[] = ['rooms', 'participants', 'people', 'groups', 'person_groups', 'placements']
-    await Promise.all(tables.map((table) => get().refetch(table)))
+    await Promise.all(ROOM_TABLES.map((table) => get().refetch(table)))
   }
 
   const broadcastDrag = throttle((message: DragMessage) => connection?.sendDrag(message), DRAG_BROADCAST_INTERVAL_MS)
+
+  const placeOnSharedBoard = async (room: Room, me: Participant, personId: string, point: BoardPoint) => {
+    const placement: SharedPlacement = {
+      roomId: room.id,
+      personId,
+      x: point.x,
+      y: point.y,
+      updatedBy: me.id,
+      updatedAt: new Date().toISOString(),
+    }
+    set((state) => ({
+      sharedPlacements: [...state.sharedPlacements.filter((p) => p.personId !== personId), placement],
+    }))
+    try {
+      await backend.saveSharedPlacement(placement)
+    } catch (error) {
+      set({ error: errorMessage(error) })
+      await get().refetch('shared_placements')
+    }
+  }
+
+  const unplaceFromSharedBoard = async (room: Room, personId: string) => {
+    set((state) => ({ sharedPlacements: state.sharedPlacements.filter((p) => p.personId !== personId) }))
+    try {
+      await backend.deleteSharedPlacement(room.id, personId)
+    } catch (error) {
+      set({ error: errorMessage(error) })
+      await get().refetch('shared_placements')
+    }
+  }
 
   /** Runs a mutation and refetches the tables it touches, keeping the error visible. */
   const mutate = async (tables: RoomTable[], run: () => Promise<void>) => {
@@ -166,6 +201,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
 
     async refetch(table) {
       const roomId = get().room?.id
+      const mode = get().room?.mode
       if (!roomId) return
       switch (table) {
         case 'rooms': {
@@ -191,9 +227,15 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
           set({ memberships: await backend.fetchMemberships(roomId) })
           break
         case 'placements': {
+          if (mode !== 'vs') break
           const placements = await backend.fetchPlacements(roomId)
           // Settled placements replace provisional drags; active drags resend within ~66 ms.
           set({ placements, liveDrags: {} })
+          break
+        }
+        case 'shared_placements': {
+          if (mode !== 'general') break
+          set({ sharedPlacements: await backend.fetchSharedPlacements(roomId), liveDrags: {} })
           break
         }
       }
@@ -222,8 +264,11 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       set((state) => ({
         people: state.people.filter((p) => p.id !== personId),
         placements: state.placements.filter((p) => p.personId !== personId),
+        sharedPlacements: state.sharedPlacements.filter((p) => p.personId !== personId),
       }))
-      await mutate(['people', 'person_groups', 'placements', 'participants'], () => backend.deletePerson(personId))
+      await mutate(['people', 'person_groups', 'placements', 'shared_placements', 'participants'], () =>
+        backend.deletePerson(personId),
+      )
     },
 
     async setPersonGroups(personId, groupIds) {
@@ -235,10 +280,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       const toRemove = current.filter((id) => !groupIds.includes(id))
       const asMembership = (groupId: string): Membership => ({ personId, groupId, roomId: room.id })
       set((state) => ({
-        memberships: [
-          ...state.memberships.filter((m) => m.personId !== personId),
-          ...groupIds.map(asMembership),
-        ],
+        memberships: [...state.memberships.filter((m) => m.personId !== personId), ...groupIds.map(asMembership)],
       }))
       await mutate(['person_groups'], async () => {
         if (toAdd.length > 0) await backend.addMemberships(toAdd.map(asMembership))
@@ -333,13 +375,16 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
 
     dragPerson(personId, point) {
       const { room, me } = get()
-      if (!room?.revealed || !me || !point) return
+      // In 'vs' rooms nothing is sent while blind; the shared board is always public.
+      const visibleToOthers = room?.mode === 'general' || room?.revealed
+      if (!visibleToOthers || !me || !point) return
       broadcastDrag({ participantId: me.id, personId, x: point.x, y: point.y })
     },
 
     async placePerson(personId, point) {
       const { room, me } = requireRoom()
       broadcastDrag.cancel()
+      if (room.mode === 'general') return placeOnSharedBoard(room, me, personId, point)
       const placement: Placement = {
         participantId: me.id,
         personId,
@@ -363,8 +408,9 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     },
 
     async unplacePerson(personId) {
-      const { me } = requireRoom()
+      const { room, me } = requireRoom()
       broadcastDrag.cancel()
+      if (room.mode === 'general') return unplaceFromSharedBoard(room, personId)
       set((state) => ({
         placements: state.placements.filter((p) => !(p.participantId === me.id && p.personId === personId)),
       }))

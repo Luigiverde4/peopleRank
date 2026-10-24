@@ -21,7 +21,7 @@ npx supabase db push
 ```
 
 - `<ref>` es el identificador del proyecto (el subdominio de la Project URL).
-- `db push` aplica `supabase/migrations/*_init.sql`: tablas, RLS, funciones RPC, publicación de Realtime y el bucket `photos`.
+- `db push` aplica todas las migraciones de `supabase/migrations/` que falten: tablas, RLS, funciones RPC, publicación de Realtime, el bucket `photos` y los modos de juego. Cuando se añada una migración nueva, basta con volver a ejecutarlo.
 - El seed de demo (`supabase/seed.sql`) **no** se aplica en remoto; solo se usa en local.
 
 ## 3. Activar la auth anónima y comprobar el bucket

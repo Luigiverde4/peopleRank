@@ -4,8 +4,8 @@ import { presenceEntries, toPlacement, toRoom } from './supabaseRows'
 describe('row mappers', () => {
   it('maps snake_case rows to app types', () => {
     expect(
-      toRoom({ id: 'r', slug: 's', name: 'n', created_by: 'u', revealed: true, created_at: 't' }),
-    ).toEqual({ id: 'r', slug: 's', name: 'n', createdBy: 'u', revealed: true, createdAt: 't' })
+      toRoom({ id: 'r', slug: 's', name: 'n', created_by: 'u', revealed: true, mode: 'general', created_at: 't' }),
+    ).toEqual({ id: 'r', slug: 's', name: 'n', createdBy: 'u', revealed: true, mode: 'general', createdAt: 't' })
     expect(
       toPlacement({ participant_id: 'a', person_id: 'p', room_id: 'r', x: 0.1, y: 0.9, updated_at: 't' }),
     ).toEqual({ participantId: 'a', personId: 'p', roomId: 'r', x: 0.1, y: 0.9, updatedAt: 't' })

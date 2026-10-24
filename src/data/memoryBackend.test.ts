@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryBackend } from './memoryBackend'
+import type { GameMode } from './types'
 
 class FakeStorage implements Storage {
   private items = new Map<string, string>()
@@ -23,10 +24,10 @@ class FakeStorage implements Storage {
   }
 }
 
-async function setupRoom(storage: Storage) {
+async function setupRoom(storage: Storage, mode: GameMode = 'vs') {
   const backend = createMemoryBackend(storage)
   await backend.ensureSession()
-  const slug = await backend.createRoom('1º B', 'Yo')
+  const slug = await backend.createRoom('1º B', 'Yo', mode)
   const membership = await backend.findMembership(slug)
   if (!membership) throw new Error('membership not created')
   return { backend, slug, ...membership }
@@ -97,5 +98,25 @@ describe('memory backend', () => {
     const { backend, slug, me } = await setupRoom(new FakeStorage())
     const joined = await backend.joinRoom(slug, 'Otro nombre')
     expect(joined.me.id).toBe(me.id)
+  })
+
+  it('keeps one shared position per person in general rooms', async () => {
+    const { backend, room, me } = await setupRoom(new FakeStorage(), 'general')
+    expect(room.mode).toBe('general')
+    const [ana] = await backend.addPeople(room.id, ['Ana'])
+    const shared = { roomId: room.id, personId: ana!.id, updatedBy: me.id }
+    await backend.saveSharedPlacement({ ...shared, x: 0.1, y: 0.1 })
+    await backend.saveSharedPlacement({ ...shared, x: 0.7, y: 0.6 })
+    expect(await backend.fetchSharedPlacements(room.id)).toMatchObject([{ x: 0.7, y: 0.6, updatedBy: me.id }])
+    await backend.deletePerson(ana!.id)
+    expect(await backend.fetchSharedPlacements(room.id)).toEqual([])
+  })
+
+  it('rejects shared positions in vs rooms', async () => {
+    const { backend, room, me } = await setupRoom(new FakeStorage(), 'vs')
+    const [ana] = await backend.addPeople(room.id, ['Ana'])
+    await expect(
+      backend.saveSharedPlacement({ roomId: room.id, personId: ana!.id, updatedBy: me.id, x: 0.5, y: 0.5 }),
+    ).rejects.toThrow()
   })
 })

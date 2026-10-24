@@ -1,6 +1,16 @@
 import type { DataBackend, RoomConnection, RoomEventHandlers, RoomMembership } from './backend'
 import { newId, newSlug } from './ids'
-import type { Group, Membership, Participant, Person, Placement, PresenceEntry, Room, RoomTable } from './types'
+import {
+  ROOM_TABLES,
+  type Group,
+  type Membership,
+  type Participant,
+  type Person,
+  type Placement,
+  type PresenceEntry,
+  type Room,
+  type SharedPlacement,
+} from './types'
 
 /**
  * Offline backend: a single local user whose data lives in localStorage.
@@ -17,11 +27,10 @@ interface MemoryDb {
   groups: Group[]
   memberships: Membership[]
   placements: Placement[]
+  sharedPlacements: SharedPlacement[]
   /** Photo path -> data URL. */
   photos: Record<string, string>
 }
-
-const ALL_TABLES: RoomTable[] = ['rooms', 'participants', 'people', 'groups', 'person_groups', 'placements']
 
 function emptyDb(): MemoryDb {
   return {
@@ -32,6 +41,7 @@ function emptyDb(): MemoryDb {
     groups: [],
     memberships: [],
     placements: [],
+    sharedPlacements: [],
     photos: {},
   }
 }
@@ -108,13 +118,14 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
       return db.userId
     },
 
-    async createRoom(name, displayName) {
+    async createRoom(name, displayName, mode) {
       const room: Room = {
         id: newId(),
         slug: newSlug(),
         name,
         createdBy: db.userId,
         revealed: false,
+        mode,
         createdAt: now(),
       }
       mutate((current) => {
@@ -191,6 +202,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
         current.people = current.people.filter((p) => p.id !== personId)
         current.memberships = current.memberships.filter((m) => m.personId !== personId)
         current.placements = current.placements.filter((p) => p.personId !== personId)
+        current.sharedPlacements = current.sharedPlacements.filter((p) => p.personId !== personId)
         for (const participant of current.participants) {
           if (participant.personId === personId) participant.personId = null
         }
@@ -261,6 +273,30 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
       })
     },
 
+    async fetchSharedPlacements(roomId) {
+      db = loadDb()
+      return db.sharedPlacements.filter((p) => p.roomId === roomId)
+    },
+
+    async saveSharedPlacement(placement) {
+      mutate((current) => {
+        const room = current.rooms.find((r) => r.id === placement.roomId)
+        if (room?.mode !== 'general') throw new Error('Esta sala no tiene tablero común')
+        current.sharedPlacements = current.sharedPlacements.filter(
+          (p) => !(p.roomId === placement.roomId && p.personId === placement.personId),
+        )
+        current.sharedPlacements.push({ ...placement, updatedAt: now() })
+      })
+    },
+
+    async deleteSharedPlacement(roomId, personId) {
+      mutate((current) => {
+        current.sharedPlacements = current.sharedPlacements.filter(
+          (p) => !(p.roomId === roomId && p.personId === personId),
+        )
+      })
+    },
+
     async updateParticipant(participantId, patch) {
       mutate((current) => {
         const participant = current.participants.find((p) => p.id === participantId)
@@ -294,7 +330,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
       const onStorage = (event: StorageEvent) => {
         if (event.key !== MEMORY_STORAGE_KEY) return
         db = loadDb()
-        ALL_TABLES.forEach((table) => handlers.onTableChange(table))
+        ROOM_TABLES.forEach((table) => handlers.onTableChange(table))
       }
       globalThis.addEventListener?.('storage', onStorage)
       return {

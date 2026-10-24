@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { GameMode } from '../data/types'
 
 export type BoardView =
   | { kind: 'mine' }
@@ -6,10 +7,17 @@ export type BoardView =
   | { kind: 'participant'; participantId: string }
   | { kind: 'graph' }
 
-/** Falls back to "Mi tablero" when the chosen view is not available (yet): the others' boards need a revealed room. */
-export function effectiveView(view: BoardView, revealed: boolean, participantIds: readonly string[]): BoardView {
+/**
+ * Falls back to the editable board when the chosen view is not available: 'general' rooms only have
+ * the shared board and the graph, and in 'vs' rooms the others' boards need the room revealed.
+ */
+export function effectiveView(
+  view: BoardView,
+  room: { revealed: boolean; mode: GameMode },
+  participantIds: readonly string[],
+): BoardView {
   if (view.kind === 'mine' || view.kind === 'graph') return view
-  if (!revealed) return { kind: 'mine' }
+  if (room.mode === 'general' || !room.revealed) return { kind: 'mine' }
   if (view.kind === 'participant' && !participantIds.includes(view.participantId)) return { kind: 'mine' }
   return view
 }

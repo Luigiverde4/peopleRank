@@ -1,5 +1,7 @@
 import type {
   DragMessage,
+  GameMode,
+  SharedPlacement,
   Group,
   Membership,
   Participant,
@@ -49,7 +51,7 @@ export interface DataBackend {
   /** Signs in (anonymously if needed) and returns the user id. */
   ensureSession(): Promise<string>
 
-  createRoom(name: string, displayName: string): Promise<string>
+  createRoom(name: string, displayName: string, mode: GameMode): Promise<string>
   joinRoom(slug: string, displayName: string): Promise<RoomMembership>
   /** Returns the room and my participant if I already joined it. */
   findMembership(slug: string): Promise<RoomMembership | null>
@@ -76,6 +78,11 @@ export interface DataBackend {
 
   savePlacement(placement: Omit<Placement, 'updatedAt'>): Promise<void>
   deletePlacement(participantId: string, personId: string): Promise<void>
+
+  /** Shared board of a 'general' room: every member reads and moves it. */
+  fetchSharedPlacements(roomId: string): Promise<SharedPlacement[]>
+  saveSharedPlacement(placement: Omit<SharedPlacement, 'updatedAt'>): Promise<void>
+  deleteSharedPlacement(roomId: string, personId: string): Promise<void>
 
   updateParticipant(participantId: string, patch: ParticipantPatch): Promise<void>
   revealRoom(roomId: string): Promise<void>

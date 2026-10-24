@@ -1,12 +1,15 @@
 # peopleRank
 
-Web para que un grupo de amigos clasifique, durante una llamada, a la gente de su curso por popularidad. Cada participante coloca a las personas en su propio tablero 2D:
+Web para que un grupo de amigos clasifique, durante una llamada, a la gente de su curso por popularidad en un tablero 2D:
 
 - **Eje Y:** popularidad en el curso.
 - **Eje X:** popularidad dentro de su grupo (de la periferia al centro).
 - **Grupos de amigos:** se ven como el color del anillo de cada ficha, y sirven para filtrar.
 
-Mientras la sala está en **modo ciego**, cada uno solo ve su tablero (lo garantiza la base de datos con RLS). Cuando quien creó la sala pulsa **Revelar**, todos ven todos los tableros, el consenso y las estadísticas.
+Cada sala tiene un **modo de juego**, que se elige al crearla y no cambia:
+
+- **General:** un solo tablero que movéis todos a la vez mientras lo discutís en la llamada.
+- **VS:** cada uno coloca a todos en su propio tablero. Mientras la sala está en **modo ciego**, cada uno solo ve el suyo (lo garantiza la base de datos con RLS). Cuando quien creó la sala pulsa **Revelar**, todos ven todos los tableros, el consenso y las estadísticas.
 
 Stack: Vite + React + TypeScript, React Router, Zustand, Tailwind, Supabase (Postgres, Realtime, Storage y auth anónima) y Vitest.
 
@@ -36,7 +39,7 @@ npm run dev
 ```
 
 - Abre <http://localhost:5173/r/demo4bsala2026> para la sala de demo del seed (40 personas, 5 grupos y 3 participantes).
-- Para probar con dos usuarios a la vez, usa una ventana de incógnito, o abre `localhost` en una pestaña y `127.0.0.1` en otra.
+- Para probar con dos usuarios a la vez, usa una ventana de incógnito u otro navegador. Dos pestañas normales comparten la sesión y cuentan como el mismo participante.
 
 ## Scripts
 

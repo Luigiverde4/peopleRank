@@ -1,5 +1,15 @@
 import type { Tables } from './database.types'
-import type { Group, Membership, Participant, Person, Placement, PresenceEntry, Room } from './types'
+import type {
+  GameMode,
+  Group,
+  Membership,
+  Participant,
+  Person,
+  Placement,
+  PresenceEntry,
+  Room,
+  SharedPlacement,
+} from './types'
 
 /** Mappers between Postgres rows (snake_case) and app types (camelCase). */
 
@@ -10,6 +20,7 @@ export function toRoom(row: Tables<'rooms'>): Room {
     name: row.name,
     createdBy: row.created_by,
     revealed: row.revealed,
+    mode: row.mode as GameMode,
     createdAt: row.created_at,
   }
 }
@@ -50,6 +61,17 @@ export function toPlacement(row: Tables<'placements'>): Placement {
     roomId: row.room_id,
     x: row.x,
     y: row.y,
+    updatedAt: row.updated_at,
+  }
+}
+
+export function toSharedPlacement(row: Tables<'shared_placements'>): SharedPlacement {
+  return {
+    roomId: row.room_id,
+    personId: row.person_id,
+    x: row.x,
+    y: row.y,
+    updatedBy: row.updated_by,
     updatedAt: row.updated_at,
   }
 }

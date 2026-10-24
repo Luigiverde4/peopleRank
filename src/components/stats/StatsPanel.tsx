@@ -35,13 +35,15 @@ function Empty({ children }: { children: ReactNode }) {
 
 export function StatsPanel() {
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
+  const mode = useRoomStore((s) => s.room?.mode ?? 'vs')
 
   return (
     <aside className="rounded-lg border border-slate-200 bg-white px-3 py-1 xl:max-h-[calc(100dvh-6rem)] xl:w-80 xl:shrink-0 xl:overflow-y-auto">
       <h2 className="py-2 text-base font-semibold">Estadísticas</h2>
       <GroupStatsSection />
       <BridgesSection />
-      {revealed ? (
+      {/* Comparing voters only makes sense with individual boards. */}
+      {mode === 'general' ? null : revealed ? (
         <>
           <ControversialSection />
           <SelfPerceptionSection />

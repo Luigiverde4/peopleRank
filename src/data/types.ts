@@ -1,9 +1,16 @@
+/**
+ * Fixed per room. 'vs': each participant has their own board, blind until revealed, then compared.
+ * 'general': one shared board that every member moves during the call.
+ */
+export type GameMode = 'vs' | 'general'
+
 export interface Room {
   id: string
   slug: string
   name: string
   createdBy: string
   revealed: boolean
+  mode: GameMode
   createdAt: string
 }
 
@@ -49,18 +56,36 @@ export interface Placement {
   updatedAt: string
 }
 
-/** Everything the room screen needs, loaded in one go. */
-export interface RoomSnapshot {
-  room: Room
-  participants: Participant[]
-  people: Person[]
-  groups: Group[]
-  memberships: Membership[]
-  placements: Placement[]
+/** A person's position on the shared board of a 'general' room. */
+export interface SharedPlacement {
+  roomId: string
+  personId: string
+  x: number
+  y: number
+  /** Participant who moved it last. */
+  updatedBy: string | null
+  updatedAt: string
 }
 
 /** Tables that can change while a room is open. */
-export type RoomTable = 'rooms' | 'participants' | 'people' | 'groups' | 'person_groups' | 'placements'
+export type RoomTable =
+  | 'rooms'
+  | 'participants'
+  | 'people'
+  | 'groups'
+  | 'person_groups'
+  | 'placements'
+  | 'shared_placements'
+
+export const ROOM_TABLES: RoomTable[] = [
+  'rooms',
+  'participants',
+  'people',
+  'groups',
+  'person_groups',
+  'placements',
+  'shared_placements',
+]
 
 export interface PresenceEntry {
   participantId: string

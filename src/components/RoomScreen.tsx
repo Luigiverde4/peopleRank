@@ -51,8 +51,9 @@ export function RoomScreen() {
 function SelectedBoard() {
   const chosen = useUiStore((s) => s.view)
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
+  const mode = useRoomStore((s) => s.room?.mode ?? 'vs')
   const participantIds = useRoomStore((s) => s.participants.map((p) => p.id).join(','))
-  const view = effectiveView(chosen, revealed, participantIds.split(','))
+  const view = effectiveView(chosen, { revealed, mode }, participantIds.split(','))
 
   switch (view.kind) {
     case 'participant':

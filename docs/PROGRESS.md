@@ -67,6 +67,14 @@ Verificado en el navegador:
 - Exportación del consenso (1150×1144 px) y del grafo, generando el PNG sin descargarlo.
 - Grafo con 5 clústeres unidos por los puentes y el filtro por grupo aplicado al instante.
 
+## Después de las fases
+
+- **Modos de juego (General / VS), fijos por sala.** Migración `20261024150000_game_modes.sql`: columna `rooms.mode`, tabla `shared_placements` con RLS (solo miembros, solo en salas General, sin firmar como otro), `create_room(name, display_name, mode)`.
+  - En General: tablero común con arrastre en directo; la ficha que mueve otra persona lleva su nombre. Sin Revelar, consenso, tableros individuales ni estadísticas entre votantes.
+  - `verify:rls` suma 8 comprobaciones del modo General (37 en total), todas en verde.
+  - Probado en el navegador con dos usuarios: lo que coloca o mueve uno aparece al instante en la pantalla del otro.
+- Selector de miembros por grupo, nombre de sala opcional y tablero ajustado al espacio disponible.
+
 ## Problemas conocidos
 
 - Con más de ~100 fichas el tablero se satura visualmente; la búsqueda y el filtro ayudan a encontrar a alguien.

@@ -6,14 +6,32 @@ const tabClass = (active: boolean) =>
     active ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50'
   }`
 
-/** "Mi tablero" (editable), "Grafo", and "Consenso" / "Tablero de X" (only once revealed). */
+/**
+ * 'vs': "Mi tablero" (editable), "Grafo", and "Consenso" / "Tablero de X" (only once revealed).
+ * 'general': "Tablero común" and "Grafo".
+ */
 export function ViewSelector() {
   const view = useUiStore((s) => s.view)
   const setView = useUiStore((s) => s.setView)
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
+  const mode = useRoomStore((s) => s.room?.mode ?? 'vs')
   const participants = useRoomStore((s) => s.participants)
   const myId = useRoomStore((s) => s.me?.id)
   const others = participants.filter((p) => p.id !== myId)
+
+  if (mode === 'general') {
+    return (
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Vista del tablero">
+        <button type="button" className={tabClass(view.kind !== 'graph')} onClick={() => setView({ kind: 'mine' })}>
+          Tablero común
+        </button>
+        <button type="button" className={tabClass(view.kind === 'graph')} onClick={() => setView({ kind: 'graph' })}>
+          Grafo
+        </button>
+        <span className="text-xs text-slate-400">Todos movéis el mismo tablero y veis los cambios al momento.</span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Vista del tablero">

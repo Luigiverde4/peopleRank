@@ -10,12 +10,12 @@ import {
   toPerson,
   toPlacement,
   toRoom,
+  toSharedPlacement,
   type PresencePayload,
 } from './supabaseRows'
-import type { DragMessage, PresenceEntry, RoomTable } from './types'
+import { ROOM_TABLES, type DragMessage, type PresenceEntry } from './types'
 
 const PHOTOS_BUCKET = 'photos'
-const WATCHED_TABLES: RoomTable[] = ['rooms', 'participants', 'people', 'groups', 'person_groups', 'placements']
 
 type QueryResult = { data: unknown; error: PostgrestError | null }
 /** The data type of the success branch of a Supabase response. */
@@ -72,9 +72,9 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
 
     ensureSession: userId,
 
-    async createRoom(name, displayName) {
+    async createRoom(name, displayName, mode) {
       await userId()
-      return check(await client.rpc('create_room', { name, display_name: displayName }))
+      return check(await client.rpc('create_room', { name, display_name: displayName, mode }))
     },
 
     async joinRoom(slug, displayName): Promise<RoomMembership> {
@@ -165,7 +165,9 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
     async addMemberships(memberships) {
       if (memberships.length === 0) return
       const rows = memberships.map((m) => ({ person_id: m.personId, group_id: m.groupId, room_id: m.roomId }))
-      check(await client.from('person_groups').upsert(rows, { onConflict: 'person_id,group_id', ignoreDuplicates: true }))
+      check(
+        await client.from('person_groups').upsert(rows, { onConflict: 'person_id,group_id', ignoreDuplicates: true }),
+      )
     },
 
     async removeMemberships(memberships) {
@@ -193,6 +195,29 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
 
     async deletePlacement(participantId, personId) {
       check(await client.from('placements').delete().eq('participant_id', participantId).eq('person_id', personId))
+    },
+
+    async fetchSharedPlacements(roomId) {
+      return check(await client.from('shared_placements').select('*').eq('room_id', roomId)).map(toSharedPlacement)
+    },
+
+    async saveSharedPlacement(placement) {
+      check(
+        await client.from('shared_placements').upsert(
+          {
+            room_id: placement.roomId,
+            person_id: placement.personId,
+            x: placement.x,
+            y: placement.y,
+            updated_by: placement.updatedBy,
+          },
+          { onConflict: 'room_id,person_id' },
+        ),
+      )
+    },
+
+    async deleteSharedPlacement(roomId, personId) {
+      check(await client.from('shared_placements').delete().eq('room_id', roomId).eq('person_id', personId))
     },
 
     async updateParticipant(participantId, patch) {
@@ -231,7 +256,7 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
       })
       let subscribed = false
 
-      for (const table of WATCHED_TABLES) {
+      for (const table of ROOM_TABLES) {
         const filter = table === 'rooms' ? `id=eq.${roomId}` : `room_id=eq.${roomId}`
         const notify = () => handlers.onTableChange(table)
         channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table, filter }, notify)

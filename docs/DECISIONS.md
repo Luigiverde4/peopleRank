@@ -58,6 +58,15 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Modos de juego
+
+- **Fijo por sala:** se elige al crearla (por defecto, General) y no se puede cambiar.
+- **Tabla propia para el tablero común** (`shared_placements`), en lugar de reutilizar `placements` con un participante ficticio: así las políticas del modo VS quedan intactas.
+- **Conflictos:** gana la última persona en soltar. Mientras alguien arrastra una ficha, los demás la ven moverse con su nombre encima.
+- **`updated_by`:** guarda quién movió la ficha por última vez. RLS impide firmar como otro participante.
+- **Estadísticas en General:** solo grupos y puentes. La posición media de cada grupo usa el tablero común.
+- **Pendiente:** el botón «Pasar a tablero común» desde una sala VS revelada, con las fichas en su posición de consenso.
+
 ## Extras (fase 4)
 
 - **Recorte de fotos:** se recorta el cuadrado central, sin editor de encuadre.

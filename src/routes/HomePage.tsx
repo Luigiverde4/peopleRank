@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { backend, parseSlug } from '../data'
+import { backend, parseSlug, type GameMode } from '../data'
 import { defaultRoomName, loadDisplayName, saveDisplayName } from '../lib/displayName'
 
 const inputClass =
@@ -28,9 +28,24 @@ export function HomePage() {
   )
 }
 
+const GAME_MODES: { mode: GameMode; title: string; description: string }[] = [
+  {
+    mode: 'general',
+    title: 'General',
+    description: 'Un solo tablero que movéis todos a la vez mientras lo discutís en la llamada.',
+  },
+  {
+    mode: 'vs',
+    title: 'VS',
+    description:
+      'Cada uno coloca a todos en su tablero a ciegas; al revelar se comparan y salen el consenso y las estadísticas.',
+  },
+]
+
 function CreateRoomCard() {
   const navigate = useNavigate()
   const [roomName, setRoomName] = useState('')
+  const [mode, setMode] = useState<GameMode>('general')
   const [displayName, setDisplayName] = useState(loadDisplayName)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,7 +56,7 @@ function CreateRoomCard() {
     setError(null)
     try {
       saveDisplayName(displayName)
-      const slug = await backend.createRoom(roomName.trim() || defaultRoomName(new Date()), displayName.trim())
+      const slug = await backend.createRoom(roomName.trim() || defaultRoomName(new Date()), displayName.trim(), mode)
       navigate(`/r/${slug}`)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
@@ -52,6 +67,30 @@ function CreateRoomCard() {
   return (
     <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold">Crear sala</h2>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium text-slate-700">Modo de juego (no se puede cambiar después)</legend>
+        {GAME_MODES.map((option) => (
+          <label
+            key={option.mode}
+            className={`flex cursor-pointer gap-2 rounded-lg border p-3 text-sm ${
+              mode === option.mode ? 'border-sky-500 bg-sky-50' : 'border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <input
+              type="radio"
+              name="game-mode"
+              value={option.mode}
+              checked={mode === option.mode}
+              onChange={() => setMode(option.mode)}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-semibold">{option.title}</span>
+              <span className="block text-slate-600">{option.description}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       <input
         maxLength={100}
         value={roomName}

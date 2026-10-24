@@ -211,6 +211,52 @@ async function main(): Promise<void> {
   expect(listenerB.drags.length > 0, 'B receives drag broadcasts from A')
   console.log(`  (B realtime events: ${JSON.stringify(listenerB.events)})`)
 
+  // Game mode 'general': one shared board that every member moves.
+  const sharedRow = (room: string, participantId: string, x: number) => ({
+    room_id: room,
+    person_id: person.id,
+    x,
+    y: 0.5,
+    updated_by: participantId,
+  })
+  const { error: vsShared } = await a.client.from('shared_placements').upsert(sharedRow(roomId, participantA, 0.5))
+  expect(vsShared !== null, "a 'vs' room has no shared board")
+
+  const { data: generalSlug } = await a.client.rpc('create_room', {
+    name: 'RLS general',
+    display_name: 'A',
+    mode: 'general',
+  })
+  const { data: generalRoom } = await b.client.rpc('join_room', { slug: generalSlug, display_name: 'B' })
+  expect(generalRoom?.mode === 'general', "create_room stores the 'general' mode")
+  const generalId = generalRoom.id as string
+  const generalA = await myParticipantId(a.client, generalId, a.userId)
+  const generalB = await myParticipantId(b.client, generalId, b.userId)
+  const { data: generalPerson } = await a.client
+    .from('people')
+    .insert({ room_id: generalId, name: 'Persona común' })
+    .select()
+    .single()
+  const sharedFor = (participantId: string, x: number) => ({
+    ...sharedRow(generalId, participantId, x),
+    person_id: generalPerson.id,
+  })
+
+  const { error: sharedByA } = await a.client.from('shared_placements').upsert(sharedFor(generalA, 0.2))
+  expect(!sharedByA, 'A places a person on the shared board')
+  const { data: seenByB } = await b.client.from('shared_placements').select('x').eq('room_id', generalId)
+  expect(seenByB?.length === 1, 'B sees the shared position at once (no blind mode)')
+  const { error: movedByB } = await b.client.from('shared_placements').upsert(sharedFor(generalB, 0.9))
+  expect(!movedByB, 'B moves the same person on the shared board')
+  const { error: spoofed } = await b.client.from('shared_placements').upsert(sharedFor(generalA, 0.1))
+  expect(spoofed !== null, 'B cannot sign a move as A')
+  expect((await count(c.client, 'shared_placements', generalId)) === 0, 'outsider C does not see the shared board')
+  const { error: outsiderShared } = await c.client.from('shared_placements').upsert({
+    ...sharedFor(generalA, 0.4),
+    updated_by: null,
+  })
+  expect(outsiderShared !== null, 'outsider C cannot move the shared board')
+
   await a.client.removeAllChannels()
   await b.client.removeAllChannels()
 

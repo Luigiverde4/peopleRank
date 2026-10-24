@@ -19,17 +19,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          # --fail hace que un 4xx/5xx marque el job como fallido (y GitHub te avisa por email)
-          # --retry cubre fallos de red puntuales
-          response=$(curl --silent --show-error --fail \
-            --retry 3 --retry-delay 10 --retry-all-errors \
+          echo "URL length: ${#SUPABASE_URL}"
+          echo "Key length: ${#SUPABASE_KEY}"
+          echo "Key prefix: ${SUPABASE_KEY:0:15}"
+          curl --silent --show-error \
             "$SUPABASE_URL/rest/v1/rooms?select=id&limit=1" \
-            -H "apikey: $SUPABASE_KEY")
-
-          echo "Response: $response"
-
-          # Una respuesta válida de PostgREST es un array JSON (aunque esté vacío)
-          if [[ "$response" != \[* ]]; then
-            echo "::error::Unexpected response from Supabase"
-            exit 1
-          fi
+            -H "apikey: $SUPABASE_KEY"

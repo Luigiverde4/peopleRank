@@ -6,7 +6,7 @@ const tabClass = (active: boolean) =>
     active ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50'
   }`
 
-/** "Mi tablero" (editable), "Consenso" and "Tablero de X" (only once revealed). */
+/** "Mi tablero" (editable), "Grafo", and "Consenso" / "Tablero de X" (only once revealed). */
 export function ViewSelector() {
   const view = useUiStore((s) => s.view)
   const setView = useUiStore((s) => s.setView)
@@ -28,6 +28,9 @@ export function ViewSelector() {
         onClick={() => setView({ kind: 'consensus' })}
       >
         Consenso
+      </button>
+      <button type="button" className={tabClass(view.kind === 'graph')} onClick={() => setView({ kind: 'graph' })}>
+        Grafo
       </button>
       {revealed ? (
         <select

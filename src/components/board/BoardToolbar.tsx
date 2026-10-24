@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
+import { downloadVisibleBoard } from './exportBoard'
 
 /** Group filter (dims the rest) and name search (highlights matches). */
 export function BoardToolbar() {
@@ -49,6 +51,33 @@ export function BoardToolbar() {
           )}
         </div>
       )}
+      <ExportButton />
     </div>
+  )
+}
+
+function ExportButton() {
+  const slug = useRoomStore((s) => s.room?.slug ?? 'sala')
+  const view = useUiStore((s) => s.view)
+  const [busy, setBusy] = useState(false)
+
+  const exportPng = async () => {
+    setBusy(true)
+    try {
+      await downloadVisibleBoard(`peopleRank-${slug}-${view.kind}.png`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => void exportPng()}
+      className="ml-auto rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+    >
+      {busy ? 'Exportando…' : 'Exportar PNG'}
+    </button>
   )
 }

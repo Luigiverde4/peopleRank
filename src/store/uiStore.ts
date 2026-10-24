@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 
-export type BoardView = { kind: 'mine' } | { kind: 'consensus' } | { kind: 'participant'; participantId: string }
+export type BoardView =
+  | { kind: 'mine' }
+  | { kind: 'consensus' }
+  | { kind: 'participant'; participantId: string }
+  | { kind: 'graph' }
 
 /** Falls back to "Mi tablero" when the chosen view is not available (yet): the others' boards need a revealed room. */
 export function effectiveView(view: BoardView, revealed: boolean, participantIds: readonly string[]): BoardView {
-  if (view.kind === 'mine') return view
+  if (view.kind === 'mine' || view.kind === 'graph') return view
   if (!revealed) return { kind: 'mine' }
   if (view.kind === 'participant' && !participantIds.includes(view.participantId)) return { kind: 'mine' }
   return view

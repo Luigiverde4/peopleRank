@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { effectiveView } from './uiStore'
 
 describe('effectiveView', () => {
-  it('always allows my board', () => {
+  it('always allows my board and the group graph', () => {
     expect(effectiveView({ kind: 'mine' }, false, [])).toEqual({ kind: 'mine' })
+    expect(effectiveView({ kind: 'graph' }, false, [])).toEqual({ kind: 'graph' })
   })
 
   it('falls back to my board before revealing', () => {

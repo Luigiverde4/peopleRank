@@ -56,6 +56,14 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Extras (fase 4)
+
+- **Recorte de fotos:** se recorta el cuadrado central, sin editor de encuadre.
+- **Navegadores sin codificación WebP en canvas:** se muestra un error en lugar de subir PNG, porque el bucket solo acepta `image/webp`.
+- **Demo offline:** las fotos se guardan como data URL en `localStorage`; con muchas fotos se puede llenar el cupo (~5 MB).
+- **Grafo:** una arista por par de personas, con el color del primer grupo compartido y un grosor igual al número de grupos compartidos. La vista está disponible siempre, porque no depende de los votos.
+- **Exportación:** se exporta solo el tablero (con sus ejes) o el grafo visibles, no la página entera. El nombre del fichero es `peopleRank-<slug>-<vista>.png`.
+
 ## Fase 1
 
 - **Sala local:** en la fase 1 (sin rutas) la app crea automáticamente una sala "Mi curso" en memoria y la recuerda en `localStorage`.

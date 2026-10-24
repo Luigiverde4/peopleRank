@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { dismissError, useRoomStore } from '../store/roomStore'
 import { effectiveView, useUiStore } from '../store/uiStore'
 import { BoardToolbar } from './board/BoardToolbar'
@@ -8,6 +9,9 @@ import { ViewSelector } from './board/ViewSelector'
 import { RoomHeader } from './RoomHeader'
 import { SidePanel } from './side/SidePanel'
 import { StatsPanel } from './stats/StatsPanel'
+
+// The force-graph library is only loaded when the graph view is opened.
+const GroupGraph = lazy(() => import('./graph/GroupGraph'))
 
 /** Layout of an open room: header, side panel and the board of the selected view. */
 export function RoomScreen() {
@@ -55,6 +59,12 @@ function SelectedBoard() {
       return <ParticipantBoard participantId={view.participantId} />
     case 'consensus':
       return <ConsensusBoard />
+    case 'graph':
+      return (
+        <Suspense fallback={<p className="text-sm text-slate-500">Cargando grafo…</p>}>
+          <GroupGraph />
+        </Suspense>
+      )
     case 'mine':
       return <MyBoard />
   }

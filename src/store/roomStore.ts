@@ -16,6 +16,7 @@ import { nextGroupColor } from '../lib/colors'
 import type { BoardPoint } from '../lib/geometry'
 import { parseGroupShortcut } from '../lib/groupShortcut'
 import { cleanName, normalizeName, parseNameList } from '../lib/names'
+import { resizeToWebp } from '../lib/photo'
 import { throttle } from '../lib/throttle'
 
 const REFETCH_DEBOUNCE_MS = 200
@@ -45,7 +46,8 @@ export interface RoomActions {
   renamePerson(personId: string, name: string): Promise<void>
   deletePerson(personId: string): Promise<void>
   setPersonGroups(personId: string, groupIds: string[]): Promise<void>
-  setPersonPhoto(personId: string, photo: Blob | null): Promise<void>
+  /** Resizes the image to a 256×256 WebP, uploads it and links it; null removes the photo. */
+  setPersonPhoto(personId: string, image: Blob | null): Promise<void>
 
   createGroup(name: string, color?: string): Promise<void>
   updateGroup(groupId: string, patch: { name?: string; color?: string }): Promise<void>
@@ -242,10 +244,10 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       })
     },
 
-    async setPersonPhoto(personId, photo) {
+    async setPersonPhoto(personId, image) {
       const { room } = requireRoom()
       await mutate(['people'], async () => {
-        const path = photo ? await backend.uploadPhoto(room.id, photo) : null
+        const path = image ? await backend.uploadPhoto(room.id, await resizeToWebp(image)) : null
         await backend.setPersonPhoto(personId, path)
       })
     },

@@ -8,6 +8,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { InlineEdit } from '../ui/InlineEdit'
 import { useTokenStyles } from '../useTokenStyles'
 import { GroupPicker } from './GroupPicker'
+import { PhotoButton } from './PhotoButton'
 
 export function PeopleTab() {
   const people = useRoomStore((s) => s.people)
@@ -36,6 +37,7 @@ export function PeopleTab() {
               className="flex-1 text-sm"
               onSave={(name) => void renamePerson(person.id, name)}
             />
+            <PhotoButton personId={person.id} personName={person.name} hasPhoto={person.photoPath !== null} />
             <GroupPicker
               groups={groups}
               selectedIds={groupsOf.get(person.id) ?? []}

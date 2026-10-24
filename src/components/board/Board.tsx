@@ -26,7 +26,7 @@ interface BoardProps {
 /** Square board with labelled axes. Children are positioned absolutely in percentages. */
 export function Board({ boardRef, children, active = false }: BoardProps) {
   return (
-    <div className="flex w-full flex-col items-center">
+    <div data-board-export className="flex w-full flex-col items-center bg-white">
       <div className="flex w-full items-stretch gap-1">
         <div className="flex w-5 shrink-0 flex-col items-center justify-between py-1 text-[11px] text-slate-500">
           <span>Alta</span>

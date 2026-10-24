@@ -52,6 +52,21 @@ Verificado con el seed (`/r/demo4bsala2026`):
 - Adela y Bruno tienen autopercepción.
 - Un participante sin colocaciones aparece con «—».
 
+## Fase 4 — Extras ✅
+
+Hecho:
+
+- **Fotos:** botón 📷 en cada persona. La imagen se recorta al cuadrado central y se redimensiona a 256×256 WebP en el cliente (canvas), y se sube al bucket `photos` como `{room_id}/{uuid}.webp`. ⌫ quita la foto y borra el objeto anterior.
+- **Vista «Grafo»** (`react-force-graph-2d`, cargada bajo demanda en su propio chunk): personas como nodos con el anillo de sus grupos, aristas por grupo compartido con el color del grupo (más gruesas si comparten varios). Respeta el filtro y la búsqueda sin reiniciar la distribución.
+- **Exportar PNG:** captura la vista visible. Los tableros se renderizan con `html-to-image` a 2×; el grafo, desde su canvas.
+- Tests de la parte pura: recorte centrado y construcción del grafo.
+
+Verificado en el navegador:
+
+- Subida de una imagen de 640×480 → WebP de 256×256 servida desde Storage.
+- Exportación del consenso (1150×1144 px) y del grafo, generando el PNG sin descargarlo.
+- Grafo con 5 clústeres unidos por los puentes y el filtro por grupo aplicado al instante.
+
 ## Problemas conocidos
 
 - Con más de ~100 fichas el tablero se satura visualmente; la búsqueda y el filtro ayudan a encontrar a alguien.

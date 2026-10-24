@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Group } from '../data/types'
 import { filterByName, groupIdsByPerson, matchesSearch, passesGroupFilter, placementsOf } from './rooms'
 
-const group = (id: string): Group => ({ id, roomId: 'r', name: id, color: '#000', createdAt: '' })
+const group = (id: string): Group => ({ id, roomId: 'r', name: id, color: '#000', parentId: null, createdAt: '' })
 
 describe('groupIdsByPerson', () => {
   it('lists groups in group order and skips unknown groups', () => {

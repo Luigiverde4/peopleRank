@@ -17,6 +17,7 @@ import { ROOM_TABLES } from '../data/types'
 import { nextGroupColor } from '../lib/colors'
 import type { BoardPoint } from '../lib/geometry'
 import { parseGroupShortcut } from '../lib/groupShortcut'
+import { subgroupColor } from '../lib/groupTree'
 import { cleanName, normalizeName, parseNameList } from '../lib/names'
 import { resizeToWebp } from '../lib/photo'
 import { throttle } from '../lib/throttle'
@@ -55,8 +56,8 @@ export interface RoomActions {
   setPersonPhoto(personId: string, image: Blob | null): Promise<void>
 
   /** Returns the new group id (null if the name is empty or the insert failed). */
-  createGroup(name: string, color?: string): Promise<string | null>
-  updateGroup(groupId: string, patch: { name?: string; color?: string }): Promise<void>
+  createGroup(name: string, color?: string, parentId?: string | null): Promise<string | null>
+  updateGroup(groupId: string, patch: { name?: string; color?: string; parentId?: string | null }): Promise<void>
   deleteGroup(groupId: string): Promise<void>
   applyGroupShortcut(text: string): Promise<{ groups: number; people: number }>
 
@@ -308,14 +309,14 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       })
     },
 
-    async createGroup(name, color) {
+    async createGroup(name, color, parentId = null) {
       const { room } = requireRoom()
       const cleaned = cleanName(name)
       if (cleaned === '') return null
-      const groupColor = color ?? nextGroupColor(get().groups.map((g) => g.color))
+      const groupColor = color ?? defaultGroupColor(get().groups, parentId)
       let createdId: string | null = null
       await mutate(['groups'], async () => {
-        createdId = (await backend.createGroup(room.id, cleaned, groupColor)).id
+        createdId = (await backend.createGroup(room.id, cleaned, groupColor, parentId)).id
       })
       return createdId
     },
@@ -434,6 +435,13 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     },
   }
 })
+
+/** Next palette color for a top-level group; a shade of the parent's color for a subgroup. */
+export function defaultGroupColor(groups: readonly Group[], parentId: string | null): string {
+  const parent = parentId ? groups.find((g) => g.id === parentId) : undefined
+  if (!parent) return nextGroupColor(groups.filter((g) => g.parentId === null).map((g) => g.color))
+  return subgroupColor(parent.color, groups.filter((g) => g.parentId === parent.id).length)
+}
 
 export function dismissError(): void {
   useRoomStore.setState({ error: null })

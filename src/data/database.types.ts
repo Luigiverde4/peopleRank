@@ -25,17 +25,23 @@ export type Database = {
           Tables: {
             "groups": {
                   Row: {
-                    "color": string,"created_at": string,"id": string,"name": string,"room_id": string
+                    "color": string,"created_at": string,"id": string,"name": string,"parent_id": string | null,"room_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "color": string,"created_at"?: string,"id"?: string,"name": string,"room_id": string
+                    "color": string,"created_at"?: string,"id"?: string,"name": string,"parent_id"?: string | null,"room_id": string
                   }
                   Update: {
-                    "color"?: string,"created_at"?: string,"id"?: string,"name"?: string,"room_id"?: string
+                    "color"?: string,"created_at"?: string,"id"?: string,"name"?: string,"parent_id"?: string | null,"room_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "groups_parent_fk"
+      columns: ["parent_id","room_id"]
+isOneToOne: false
+      referencedRelation: "groups"
+      referencedColumns: ["id","room_id"]
+    },{
       foreignKeyName: "groups_room_id_fkey"
       columns: ["room_id"]
 isOneToOne: false

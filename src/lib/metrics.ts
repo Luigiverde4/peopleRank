@@ -310,37 +310,3 @@ export function groupStats(
     }
   })
 }
-
-// ---------------------------------------------------------------------------
-// 7. Bridges
-// ---------------------------------------------------------------------------
-
-export interface Bridge {
-  personId: string
-  groupCount: number
-  /** Number of distinct people sharing at least one group with this person. */
-  degree: number
-}
-
-/** People in 2+ groups, by their degree in the person–person graph projected from groups. */
-export function bridges(people: readonly PersonRef[], memberships: readonly MembershipRef[]): Bridge[] {
-  const groupsOf = groupsByPerson(memberships)
-  const membersOf = groupBy(memberships, (m) => m.groupId)
-  const nameOf = new Map(people.map((p) => [p.id, p.name]))
-
-  return people
-    .filter((person) => (groupsOf.get(person.id)?.size ?? 0) >= 2)
-    .map((person) => {
-      const neighbours = new Set<string>()
-      for (const groupId of groupsOf.get(person.id)!) {
-        for (const member of membersOf.get(groupId) ?? []) {
-          if (member.personId !== person.id) neighbours.add(member.personId)
-        }
-      }
-      return { personId: person.id, groupCount: groupsOf.get(person.id)!.size, degree: neighbours.size }
-    })
-    .sort(
-      (a, b) =>
-        b.degree - a.degree || (nameOf.get(a.personId) ?? '').localeCompare(nameOf.get(b.personId) ?? ''),
-    )
-}

@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import {
-  bridges,
   consensus,
   controversial,
   groupStats,
@@ -9,14 +8,14 @@ import {
   voterAffinity,
 } from '../lib/metrics'
 import { useRoomStore } from '../store/roomStore'
+import { useGroupTree } from './useGroupTree'
 
 const SHARED_BOARD_VOTER = 'shared-board'
 
 /** All room metrics, recomputed only when the underlying data changes. */
 export function useRoomMetrics() {
   const people = useRoomStore((s) => s.people)
-  const groups = useRoomStore((s) => s.groups)
-  const memberships = useRoomStore((s) => s.memberships)
+  const { orderedGroups, effectiveMemberships } = useGroupTree()
   const participants = useRoomStore((s) => s.participants)
   const placements = useRoomStore((s) => s.placements)
   const sharedPlacements = useRoomStore((s) => s.sharedPlacements)
@@ -36,10 +35,9 @@ export function useRoomMetrics() {
       consensus: consensusEntries,
       controversial: controversial(consensusEntries),
       selfPerception: selfPerception(participants, validPlacements),
-      ingroupBias: ingroupBias(participants, validPlacements, memberships),
+      ingroupBias: ingroupBias(participants, validPlacements, effectiveMemberships),
       voterAffinity: voterAffinity(participants, validPlacements),
-      groupStats: groupStats(groups, memberships, consensusEntries),
-      bridges: bridges(people, memberships),
+      groupStats: groupStats(orderedGroups, effectiveMemberships, consensusEntries),
     }
-  }, [people, groups, memberships, participants, placements, sharedPlacements, mode])
+  }, [people, orderedGroups, effectiveMemberships, participants, placements, sharedPlacements, mode])
 }

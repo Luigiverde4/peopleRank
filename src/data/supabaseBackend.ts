@@ -150,12 +150,19 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
       if (row?.photo_path && row.photo_path !== photoPath) await removePhoto(row.photo_path)
     },
 
-    async createGroup(roomId, name, color) {
-      return toGroup(check(await client.from('groups').insert({ room_id: roomId, name, color }).select('*').single()))
+    async createGroup(roomId, name, color, parentId = null) {
+      return toGroup(
+        check(await client.from('groups').insert({ room_id: roomId, name, color, parent_id: parentId }).select('*').single()),
+      )
     },
 
     async updateGroup(groupId, patch) {
-      check(await client.from('groups').update(patch).eq('id', groupId))
+      const row = {
+        ...(patch.name === undefined ? {} : { name: patch.name }),
+        ...(patch.color === undefined ? {} : { color: patch.color }),
+        ...(patch.parentId === undefined ? {} : { parent_id: patch.parentId }),
+      }
+      check(await client.from('groups').update(row).eq('id', groupId))
     },
 
     async deleteGroup(groupId) {

@@ -47,7 +47,14 @@ export function toPerson(row: Tables<'people'>): Person {
 }
 
 export function toGroup(row: Tables<'groups'>): Group {
-  return { id: row.id, roomId: row.room_id, name: row.name, color: row.color, createdAt: row.created_at }
+  return {
+    id: row.id,
+    roomId: row.room_id,
+    name: row.name,
+    color: row.color,
+    parentId: row.parent_id,
+    createdAt: row.created_at,
+  }
 }
 
 export function toMembership(row: Tables<'person_groups'>): Membership {

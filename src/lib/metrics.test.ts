@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_DISTANCE,
-  bridges,
   consensus,
   controversial,
   dispersion,
@@ -223,38 +222,5 @@ describe('groupStats', () => {
       { groupId: 'empty', size: 0, meanX: null, meanY: null },
       { groupId: 'novotes', size: 1, meanX: null, meanY: null },
     ])
-  })
-})
-
-describe('bridges', () => {
-  const people = [
-    { id: 'ana', name: 'Ana' },
-    { id: 'bea', name: 'Bea' },
-    { id: 'carl', name: 'Carl' },
-    { id: 'dani', name: 'Dani' },
-    { id: 'eva', name: 'Eva' },
-  ]
-
-  it('lists people in 2+ groups by the number of distinct people they share a group with', () => {
-    const memberships = [
-      { personId: 'ana', groupId: 'g1' },
-      { personId: 'ana', groupId: 'g2' },
-      { personId: 'bea', groupId: 'g1' },
-      { personId: 'carl', groupId: 'g2' },
-      { personId: 'dani', groupId: 'g2' },
-      { personId: 'dani', groupId: 'g3' },
-      { personId: 'eva', groupId: 'g1' },
-      { personId: 'eva', groupId: 'g2' },
-    ]
-    expect(bridges(people, memberships)).toEqual([
-      // Ana: Bea, Eva (g1) + Carl, Dani, Eva (g2) -> 4 distinct people.
-      { personId: 'ana', groupCount: 2, degree: 4 },
-      { personId: 'eva', groupCount: 2, degree: 4 },
-      { personId: 'dani', groupCount: 2, degree: 3 },
-    ])
-  })
-
-  it('is empty without groups', () => {
-    expect(bridges(people, [])).toEqual([])
   })
 })

@@ -41,7 +41,6 @@ export function StatsPanel() {
     <aside className="rounded-lg border border-slate-200 bg-surface px-3 py-1 xl:max-h-[calc(100dvh-6rem)] xl:w-80 xl:shrink-0 xl:overflow-y-auto">
       <h2 className="py-2 text-base font-semibold">Estadísticas</h2>
       <GroupStatsSection />
-      <BridgesSection />
       {/* Comparing voters only makes sense with individual boards. */}
       {mode === 'general' ? null : revealed ? (
         <>
@@ -116,31 +115,6 @@ function PersonButton({ name }: { name: string }) {
     >
       {name}
     </button>
-  )
-}
-
-function BridgesSection() {
-  const people = useRoomStore((s) => s.people)
-  const { bridges } = useRoomMetrics()
-  const nameOf = new Map(people.map((p) => [p.id, p.name]))
-
-  return (
-    <Section title="Puentes" hint="Personas en 2 o más grupos, por cuánta gente distinta conectan.">
-      {bridges.length === 0 ? (
-        <Empty>Nadie está en más de un grupo.</Empty>
-      ) : (
-        <ol className="space-y-0.5">
-          {bridges.slice(0, 10).map((bridge) => (
-            <li key={bridge.personId} className="flex items-center justify-between gap-2">
-              <PersonButton name={nameOf.get(bridge.personId) ?? '?'} />
-              <span className="shrink-0 text-xs text-slate-500">
-                {bridge.groupCount} grupos · {bridge.degree} personas
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </Section>
   )
 }
 

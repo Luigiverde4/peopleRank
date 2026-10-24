@@ -64,7 +64,10 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
   function loadDb(): MemoryDb {
     try {
       const raw = storage?.getItem(MEMORY_STORAGE_KEY)
-      return raw ? { ...emptyDb(), ...(JSON.parse(raw) as Partial<MemoryDb>) } : emptyDb()
+      if (!raw) return emptyDb()
+      const stored = { ...emptyDb(), ...(JSON.parse(raw) as Partial<MemoryDb>) }
+      stored.groups = stored.groups.map((g) => ({ ...g, parentId: g.parentId ?? null }))
+      return stored
     } catch {
       return emptyDb()
     }
@@ -218,21 +221,28 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
       })
     },
 
-    async createGroup(roomId, name, color) {
-      const group: Group = { id: newId(), roomId, name, color, createdAt: now() }
-      mutate((current) => current.groups.push(group))
+    async createGroup(roomId, name, color, parentId = null) {
+      const group: Group = { id: newId(), roomId, name, color, parentId, createdAt: now() }
+      mutate((current) => {
+        assertValidParent(current.groups, group.id, parentId)
+        current.groups.push(group)
+      })
       return group
     },
 
     async updateGroup(groupId, patch) {
       mutate((current) => {
         const group = current.groups.find((g) => g.id === groupId)
-        if (group) Object.assign(group, patch)
+        if (!group) return
+        if (patch.parentId !== undefined) assertValidParent(current.groups, groupId, patch.parentId)
+        Object.assign(group, patch)
       })
     },
 
     async deleteGroup(groupId) {
       mutate((current) => {
+        // Like the database: subgroups of a deleted group become top-level groups.
+        for (const group of current.groups) if (group.parentId === groupId) group.parentId = null
         current.groups = current.groups.filter((g) => g.id !== groupId)
         current.memberships = current.memberships.filter((m) => m.groupId !== groupId)
       })
@@ -341,6 +351,15 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
   }
 
   return backend
+}
+
+/** Same two-level rule the database enforces with a trigger. */
+function assertValidParent(groups: Group[], groupId: string, parentId: string | null): void {
+  if (parentId === null) return
+  const parent = groups.find((g) => g.id === parentId)
+  if (!parent || parentId === groupId) throw new Error('Grupo padre no válido')
+  if (parent.parentId !== null) throw new Error('Un subgrupo no puede tener subgrupos')
+  if (groups.some((g) => g.parentId === groupId)) throw new Error('Un grupo con subgrupos no puede ser subgrupo')
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {

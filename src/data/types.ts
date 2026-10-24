@@ -37,6 +37,8 @@ export interface Group {
   roomId: string
   name: string
   color: string
+  /** Parent group when this is a subgroup (two levels at most). */
+  parentId: string | null
   createdAt: string
 }
 

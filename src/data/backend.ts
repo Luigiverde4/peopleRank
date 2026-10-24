@@ -34,6 +34,7 @@ export interface RoomConnection {
 export interface GroupPatch {
   name?: string
   color?: string
+  parentId?: string | null
 }
 
 export interface ParticipantPatch {
@@ -69,7 +70,7 @@ export interface DataBackend {
   deletePerson(personId: string): Promise<void>
   setPersonPhoto(personId: string, photoPath: string | null): Promise<void>
 
-  createGroup(roomId: string, name: string, color: string): Promise<Group>
+  createGroup(roomId: string, name: string, color: string, parentId?: string | null): Promise<Group>
   updateGroup(groupId: string, patch: GroupPatch): Promise<void>
   deleteGroup(groupId: string): Promise<void>
 

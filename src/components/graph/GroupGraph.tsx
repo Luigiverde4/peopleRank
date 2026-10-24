@@ -6,6 +6,7 @@ import { groupGraph } from '../../lib/graph'
 import { initials } from '../../lib/names'
 import { useRoomStore } from '../../store/roomStore'
 import { useThemeStore } from '../../store/themeStore'
+import { useGroupTree } from '../useGroupTree'
 import { useTokenStyles, type TokenLook } from '../useTokenStyles'
 
 /** Canvas colors per theme (the canvas cannot read Tailwind classes). */
@@ -33,8 +34,7 @@ interface GraphLinkDatum {
 /** People as nodes, linked when they share a group; link color = shared group. */
 export default function GroupGraph() {
   const people = useRoomStore((s) => s.people)
-  const groups = useRoomStore((s) => s.groups)
-  const memberships = useRoomStore((s) => s.memberships)
+  const { orderedGroups: groups, effectiveMemberships: memberships } = useGroupTree()
   const { lookOf } = useTokenStyles()
   const colors = CANVAS_COLORS[useThemeStore((s) => s.resolved)]
   const containerRef = useRef<HTMLDivElement>(null)

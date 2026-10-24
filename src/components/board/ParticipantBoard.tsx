@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
+import { useT } from '../../i18n'
 import { useRoomStore } from '../../store/roomStore'
 import { ReadOnlyBoard, type BoardItem } from './ReadOnlyBoard'
 
 /** "Tablero de X": another participant's board, including their in-progress drags. */
 export function ParticipantBoard({ participantId }: { participantId: string }) {
+  const t = useT()
   const people = useRoomStore((s) => s.people)
   const placements = useRoomStore((s) => s.placements)
   const liveDrags = useRoomStore((s) => s.liveDrags)
@@ -26,7 +28,7 @@ export function ParticipantBoard({ participantId }: { participantId: string }) {
   return (
     <ReadOnlyBoard
       items={items}
-      emptyMessage={`${participant?.displayName ?? 'Este participante'} todavía no ha colocado a nadie.`}
+      emptyMessage={t.board.participantEmpty(participant?.displayName)}
     />
   )
 }

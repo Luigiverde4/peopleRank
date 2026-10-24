@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useT } from '../../i18n'
 import { bridgesByPair } from '../../lib/bridges'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
@@ -6,6 +7,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 
 /** Bridges grouped by pair of groups. Names highlight the person on the board; `editable` adds delete buttons. */
 export function BridgeList({ editable = false }: { editable?: boolean }) {
+  const t = useT()
   const bridges = useRoomStore((s) => s.bridges)
   const people = useRoomStore((s) => s.people)
   const groups = useRoomStore((s) => s.groups)
@@ -17,13 +19,13 @@ export function BridgeList({ editable = false }: { editable?: boolean }) {
   const groupById = new Map(groups.map((g) => [g.id, g]))
 
   if (pairs.length === 0) {
-    return <p className="text-xs text-slate-400">Todavía no hay puentes entre grupos.</p>
+    return <p className="text-xs text-slate-400">{t.bridges.none}</p>
   }
 
   const personButton = (id: string) => (
     <button
       type="button"
-      title="Resaltar en el tablero"
+      title={t.common.highlight}
       onClick={() => setSearch(nameOf.get(id) ?? '')}
       className="min-w-0 truncate hover:text-sky-700 hover:underline"
     >
@@ -50,7 +52,7 @@ export function BridgeList({ editable = false }: { editable?: boolean }) {
             <span aria-hidden>↔</span>
             {groupLabel(pair.groupBId)}
             <span className="ml-auto font-normal text-slate-400">
-              {pair.bridges.length} {pair.bridges.length === 1 ? 'puente' : 'puentes'}
+              {t.bridges.count(pair.bridges.length)}
             </span>
           </div>
           <ul className="mt-0.5">
@@ -63,7 +65,7 @@ export function BridgeList({ editable = false }: { editable?: boolean }) {
                 {personButton(bridge.personBId)}
                 {editable && (
                   <span className="ml-auto">
-                    <ConfirmButton title="Quitar este puente" onConfirm={() => void removeBridge(bridge.id)}>
+                    <ConfirmButton title={t.bridges.remove} onConfirm={() => void removeBridge(bridge.id)}>
                       ✕
                     </ConfirmButton>
                   </span>

@@ -15,9 +15,10 @@ import type {
   SharedPlacement,
 } from '../data/types'
 import { ROOM_TABLES } from '../data/types'
+import { AppError } from '../lib/appError'
+import { normalizeBridge, sameBridge, type BridgeLink } from '../lib/bridges'
 import { nextGroupColor } from '../lib/colors'
 import type { BoardPoint } from '../lib/geometry'
-import { normalizeBridge, sameBridge, type BridgeLink } from '../lib/bridges'
 import { parseGroupShortcut } from '../lib/groupShortcut'
 import { subgroupColor } from '../lib/groupTree'
 import { cleanName, normalizeName, parseNameList } from '../lib/names'
@@ -37,7 +38,8 @@ const DRAG_BROADCAST_INTERVAL_MS = 1000 / 15
 
 export interface RoomState {
   status: 'idle' | 'loading' | 'ready' | 'error'
-  error: string | null
+  /** Last failure, shown as a banner (translated by the UI). */
+  error: Error | null
   room: Room | null
   me: Participant | null
   participants: Participant[]
@@ -118,14 +120,14 @@ function dragKey(participantId: string, personId: string): string {
   return `${participantId}:${personId}`
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error))
 }
 
 export const useRoomStore = create<RoomStore>()((set, get) => {
   const requireRoom = (): { room: Room; me: Participant } => {
     const { room, me } = get()
-    if (!room || !me) throw new Error('No hay ninguna sala abierta')
+    if (!room || !me) throw new AppError('noOpenRoom')
     return { room, me }
   }
 
@@ -161,7 +163,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     try {
       await backend.saveSharedPlacement(placement)
     } catch (error) {
-      set({ error: errorMessage(error) })
+      set({ error: toError(error) })
       await get().refetch('shared_placements')
     }
   }
@@ -171,7 +173,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     try {
       await backend.deleteSharedPlacement(room.id, personId)
     } catch (error) {
-      set({ error: errorMessage(error) })
+      set({ error: toError(error) })
       await get().refetch('shared_placements')
     }
   }
@@ -181,7 +183,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     try {
       await run()
     } catch (error) {
-      set({ error: errorMessage(error) })
+      set({ error: toError(error) })
     }
     await Promise.all(tables.map((table) => get().refetch(table)))
   }
@@ -211,7 +213,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
         await refetchAll()
         set({ status: 'ready' })
       } catch (error) {
-        set({ status: 'error', error: errorMessage(error) })
+        set({ status: 'error', error: toError(error) })
       }
     },
 
@@ -434,7 +436,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       const { room } = requireRoom()
       const bridge = normalizeBridge(link)
       if (get().bridges.some((existing) => sameBridge(existing, bridge))) {
-        set({ error: 'Ese puente ya existe' })
+        set({ error: new AppError('bridgeExists') })
         return
       }
       await mutate(['bridges'], () => backend.createBridge({ ...bridge, roomId: room.id }))
@@ -474,7 +476,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       try {
         await backend.savePlacement(placement)
       } catch (error) {
-        set({ error: errorMessage(error) })
+        set({ error: toError(error) })
         await get().refetch('placements')
       }
     },
@@ -489,7 +491,7 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       try {
         await backend.deletePlacement(me.id, personId)
       } catch (error) {
-        set({ error: errorMessage(error) })
+        set({ error: toError(error) })
         await get().refetch('placements')
       }
     },

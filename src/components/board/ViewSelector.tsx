@@ -1,3 +1,4 @@
+import { useT } from '../../i18n'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
 
@@ -12,6 +13,7 @@ const segmentClass = (active: boolean) =>
  * 'general': "Tablero común" and "Grafo".
  */
 export function ViewSelector() {
+  const t = useT()
   const view = useUiStore((s) => s.view)
   const setView = useUiStore((s) => s.setView)
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
@@ -19,22 +21,22 @@ export function ViewSelector() {
   const participants = useRoomStore((s) => s.participants)
   const myId = useRoomStore((s) => s.me?.id)
   const others = participants.filter((p) => p.id !== myId)
-  const blindHint = revealed ? undefined : 'Disponible al revelar la sala'
+  const blindHint = revealed ? undefined : t.views.availableWhenRevealed
 
   return (
     <div
       role="group"
-      aria-label="Vista del tablero"
+      aria-label={t.views.label}
       className="flex flex-wrap divide-x divide-slate-300 rounded-md ring-1 ring-slate-300"
     >
       {mode === 'general' ? (
         <button
           type="button"
-          title="Todos movéis el mismo tablero y veis los cambios al momento"
+          title={t.views.sharedHint}
           className={segmentClass(view.kind !== 'graph')}
           onClick={() => setView({ kind: 'mine' })}
         >
-          Tablero común
+          {t.views.shared}
         </button>
       ) : (
         <>
@@ -43,7 +45,7 @@ export function ViewSelector() {
             className={segmentClass(view.kind === 'mine')}
             onClick={() => setView({ kind: 'mine' })}
           >
-            Mi tablero
+            {t.views.mine}
           </button>
           <button
             type="button"
@@ -52,10 +54,10 @@ export function ViewSelector() {
             className={segmentClass(view.kind === 'consensus')}
             onClick={() => setView({ kind: 'consensus' })}
           >
-            Consenso
+            {t.views.consensus}
           </button>
           <select
-            aria-label="Ver el tablero de otro participante"
+            aria-label={t.views.otherBoardLabel}
             disabled={!revealed}
             title={blindHint}
             value={view.kind === 'participant' ? view.participantId : ''}
@@ -66,7 +68,7 @@ export function ViewSelector() {
             }
             className={`${segmentClass(view.kind === 'participant')} pr-2`}
           >
-            <option value="">Tablero de…</option>
+            <option value="">{t.views.otherBoard}</option>
             {others.map((participant) => (
               <option key={participant.id} value={participant.id}>
                 {participant.displayName}
@@ -76,7 +78,7 @@ export function ViewSelector() {
         </>
       )}
       <button type="button" className={segmentClass(view.kind === 'graph')} onClick={() => setView({ kind: 'graph' })}>
-        Grafo
+        {t.views.graph}
       </button>
     </div>
   )

@@ -1,4 +1,5 @@
 import type { ReactNode, RefObject } from 'react'
+import { useT } from '../../i18n'
 import { worldBox } from '../../lib/viewport'
 import type { BoardViewport } from './useBoardViewport'
 
@@ -29,17 +30,18 @@ interface BoardProps {
  * grows. The visible square clips the world only while zoomed in.
  */
 export function Board({ boardRef, viewport, children, active = false }: BoardProps) {
+  const t = useT()
   const zoomed = viewport.view.scale > 1
 
   return (
     <div data-board-export className="flex w-full flex-col items-center bg-surface">
       <div className="flex w-full items-stretch gap-1">
         <div className="flex w-5 shrink-0 flex-col items-center justify-between py-1 text-[11px] text-slate-500">
-          <span>Alta</span>
+          <span>{t.board.high}</span>
           <span className="whitespace-nowrap [writing-mode:vertical-rl] rotate-180 font-medium text-slate-600">
-            Popularidad en el curso →
+            {t.board.courseAxis}
           </span>
-          <span>Baja</span>
+          <span>{t.board.low}</span>
         </div>
         <div
           ref={boardRef}
@@ -54,9 +56,9 @@ export function Board({ boardRef, viewport, children, active = false }: BoardPro
         </div>
       </div>
       <div className="ml-6 flex w-[calc(100%-1.5rem)] justify-between px-1 pt-1 text-[11px] text-slate-500">
-        <span>Periferia</span>
-        <span className="font-medium text-slate-600">Popularidad en su grupo →</span>
-        <span>Centro</span>
+        <span>{t.board.periphery}</span>
+        <span className="font-medium text-slate-600">{t.board.groupAxis}</span>
+        <span>{t.board.center}</span>
       </div>
     </div>
   )

@@ -30,7 +30,22 @@ export interface ReportTable {
   rows: string[][]
 }
 
+/** Fixed texts of the report, in the language it is exported in. */
+export interface ReportLabels {
+  /** `lang` attribute of the document. */
+  lang: string
+  /** Locale of the generation date. */
+  locale: string
+  groups: string
+  axisTop: string
+  axisLeft: string
+  axisRight: string
+  noData: string
+  footer: string
+}
+
 export interface ReportData {
+  labels: ReportLabels
   title: string
   subtitle: string
   generatedAt: Date
@@ -109,7 +124,7 @@ function tokenSvg(token: ReportToken, index: number, boardIndex: number): string
   return `<g class="token"><title>${escapeHtml(token.name)}</title>${halo}${face}${ring}${votes}<text x="${cx}" y="${cy + RADIUS + 15}" class="label">${escapeHtml(token.name)}</text></g>`
 }
 
-function boardSvg(board: ReportBoard, boardIndex: number): string {
+function boardSvg(board: ReportBoard, boardIndex: number, labels: ReportLabels): string {
   const lines = Array.from({ length: 11 }, (_, i) => {
     const pos = PAD + (i * SIZE) / 10
     const cls = i === 5 ? 'axis' : 'grid'
@@ -120,17 +135,17 @@ function boardSvg(board: ReportBoard, boardIndex: number): string {
   return `<svg viewBox="0 0 ${full} ${full}" role="img" aria-label="${escapeHtml(board.title)}">
 <defs><clipPath id="board-${boardIndex}"><rect x="${PAD}" y="${PAD}" width="${SIZE}" height="${SIZE}"/></clipPath></defs>
 <rect x="${PAD}" y="${PAD}" width="${SIZE}" height="${SIZE}" class="board"/>${lines}
-<text x="${PAD + 4}" y="${PAD - 12}" class="axis-label">Alta popularidad en el curso ↑</text>
-<text x="${PAD + 4}" y="${full - 12}" class="axis-label">Periferia del grupo</text>
-<text x="${full - PAD - 4}" y="${full - 12}" class="axis-label end">Centro del grupo →</text>
+<text x="${PAD + 4}" y="${PAD - 12}" class="axis-label">${escapeHtml(labels.axisTop)}</text>
+<text x="${PAD + 4}" y="${full - 12}" class="axis-label">${escapeHtml(labels.axisLeft)}</text>
+<text x="${full - PAD - 4}" y="${full - 12}" class="axis-label end">${escapeHtml(labels.axisRight)}</text>
 ${tokens}</svg>`
 }
 
-function tableHtml(table: ReportTable): string {
+function tableHtml(table: ReportTable, labels: ReportLabels): string {
   const head = table.headers.map((h) => `<th>${escapeHtml(h)}</th>`).join('')
   const body =
     table.rows.length === 0
-      ? `<tr><td colspan="${table.headers.length}" class="empty">Sin datos</td></tr>`
+      ? `<tr><td colspan="${table.headers.length}" class="empty">${escapeHtml(labels.noData)}</td></tr>`
       : table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')
   return `<section><h2>${escapeHtml(table.title)}</h2>${table.hint ? `<p class="hint">${escapeHtml(table.hint)}</p>` : ''}<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></section>`
 }
@@ -159,6 +174,7 @@ td{font-variant-numeric:tabular-nums}.empty{color:var(--muted)}footer{color:var(
 `
 
 export function renderReportHtml(data: ReportData): string {
+  const { labels } = data
   const legend = data.legend
     .map(
       (g) =>
@@ -168,18 +184,18 @@ export function renderReportHtml(data: ReportData): string {
   const boards = data.boards
     .map(
       (board, i) =>
-        `<figure><figcaption>${escapeHtml(board.title)}${board.subtitle ? ` <small>${escapeHtml(board.subtitle)}</small>` : ''}</figcaption>${boardSvg(board, i)}</figure>`,
+        `<figure><figcaption>${escapeHtml(board.title)}${board.subtitle ? ` <small>${escapeHtml(board.subtitle)}</small>` : ''}</figcaption>${boardSvg(board, i, labels)}</figure>`,
     )
     .join('')
-  const date = data.generatedAt.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
+  const date = data.generatedAt.toLocaleString(labels.locale, { dateStyle: 'long', timeStyle: 'short' })
   return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="${escapeHtml(labels.lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(data.title)} · peopleRank</title><style>${STYLES}</style></head>
 <body><main>
 <header><h1>${escapeHtml(data.title)}</h1><p class="sub">${escapeHtml(data.subtitle)} · ${escapeHtml(date)}</p></header>
-${legend ? `<section><h2>Grupos</h2><div class="legend">${legend}</div></section>` : ''}
+${legend ? `<section><h2>${escapeHtml(labels.groups)}</h2><div class="legend">${legend}</div></section>` : ''}
 ${boards}
-${data.tables.map(tableHtml).join('\n')}
-<footer>Informe generado con peopleRank. Eje vertical: popularidad en el curso; eje horizontal: popularidad dentro de su grupo (0–100).</footer>
+${data.tables.map((table) => tableHtml(table, labels)).join('\n')}
+<footer>${escapeHtml(labels.footer)}</footer>
 </main></body></html>`
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from 'react-force-graph-2d'
 import type { Person } from '../../data/types'
+import { useT } from '../../i18n'
 import { NO_GROUP_COLOR } from '../../lib/colors'
 import { groupGraph } from '../../lib/graph'
 import { initials } from '../../lib/names'
@@ -37,6 +38,7 @@ interface GraphLinkDatum {
 
 /** People as nodes, linked when they share a group; link color = shared group. */
 export default function GroupGraph() {
+  const t = useT()
   const people = useRoomStore((s) => s.people)
   const bridges = useRoomStore((s) => s.bridges)
   const { orderedGroups: groups, effectiveMemberships: memberships } = useGroupTree()
@@ -75,10 +77,7 @@ export default function GroupGraph() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
-      <p className="text-xs text-slate-500">
-        Cada línea une a dos personas que comparten grupo (color del grupo; más gruesa si comparten varios). Las líneas
-        discontinuas naranjas son los puentes marcados a mano. Arrastra para mover, rueda para hacer zoom.
-      </p>
+      <p className="text-xs text-slate-500">{t.graph.legend}</p>
       <div className="board-area flex w-full justify-center">
         <div
           ref={containerRef}

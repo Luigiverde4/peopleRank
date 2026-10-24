@@ -1,13 +1,12 @@
+import { useT } from '../../i18n'
 import { useUiStore, type SideTab } from '../../store/uiStore'
 import { GroupsTab } from './GroupsTab'
 import { PeopleTab } from './PeopleTab'
 
-const TABS: { id: SideTab; label: string }[] = [
-  { id: 'people', label: 'Personas' },
-  { id: 'groups', label: 'Grupos' },
-]
+const TABS: SideTab[] = ['people', 'groups']
 
 export function SidePanel() {
+  const t = useT()
   const sideTab = useUiStore((s) => s.sideTab)
   const setSideTab = useUiStore((s) => s.setSideTab)
 
@@ -16,16 +15,16 @@ export function SidePanel() {
       <div role="tablist" className="flex border-b border-slate-200">
         {TABS.map((tab) => (
           <button
-            key={tab.id}
+            key={tab}
             role="tab"
             type="button"
-            aria-selected={sideTab === tab.id}
-            onClick={() => setSideTab(tab.id)}
+            aria-selected={sideTab === tab}
+            onClick={() => setSideTab(tab)}
             className={`flex-1 px-3 py-2 text-sm font-medium ${
-              sideTab === tab.id ? 'border-b-2 border-sky-600 text-sky-700' : 'text-slate-500 hover:text-slate-700'
+              sideTab === tab ? 'border-b-2 border-sky-600 text-sky-700' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            {tab.label}
+            {t.sidePanel[tab]}
           </button>
         ))}
       </div>

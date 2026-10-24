@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { useT } from '../../i18n'
 
 const CONFIRM_TIMEOUT_MS = 3000
 
@@ -25,10 +26,11 @@ const ARMED_CLASSES = {
 export function ConfirmButton({
   onConfirm,
   children,
-  confirmLabel = '¿Seguro?',
+  confirmLabel,
   title,
   variant = 'subtle',
 }: ConfirmButtonProps) {
+  const t = useT()
   const [armed, setArmed] = useState(false)
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function ConfirmButton({
         setArmed(!armed)
       }}
     >
-      {armed ? confirmLabel : children}
+      {armed ? (confirmLabel ?? t.common.confirm) : children}
     </button>
   )
 }

@@ -1,5 +1,7 @@
 import { backend } from '../data'
 import type { Membership } from '../data/types'
+import { currentMessages } from '../i18n'
+import { AppError } from '../lib/appError'
 import { normalizeBridge } from '../lib/bridges'
 import { orderGroups } from '../lib/groupTree'
 import { buildSessionFile, type SessionFile } from '../lib/session'
@@ -18,7 +20,7 @@ async function inBatches<T>(items: readonly T[], run: (item: T) => Promise<void>
 export function currentSessionFile(): SessionFile {
   const { room, me, people, groups, memberships, bridges, participants, placements, sharedPlacements } =
     useRoomStore.getState()
-  if (!room) throw new Error('No hay ninguna sala abierta')
+  if (!room) throw new AppError('noOpenRoom')
   return buildSessionFile(
     {
       room: { name: room.name, mode: room.mode, revealed: room.revealed },
@@ -47,9 +49,10 @@ export function currentSessionFile(): SessionFile {
  * moved: their anonymous identities belong to the old room.
  */
 export async function importSession(file: SessionFile, displayName: string): Promise<string> {
-  const slug = await backend.createRoom(file.room.name, displayName, file.room.mode)
+  const name = file.room.name || currentMessages().importSession.defaultName
+  const slug = await backend.createRoom(name, displayName, file.room.mode)
   const membership = await backend.findMembership(slug)
-  if (!membership) throw new Error('No se pudo crear la sala')
+  if (!membership) throw new AppError('roomCreateFailed')
   const { room, me } = membership
 
   const created = await backend.addPeople(

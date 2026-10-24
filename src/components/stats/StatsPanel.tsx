@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Participant } from '../../data/types'
+import { useT } from '../../i18n'
 import { similarityFromDistance } from '../../lib/metrics'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
@@ -35,14 +36,15 @@ function Empty({ children }: { children: ReactNode }) {
 }
 
 export function StatsPanel() {
+  const t = useT()
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
   const mode = useRoomStore((s) => s.room?.mode ?? 'vs')
 
   return (
     <aside className="rounded-lg border border-slate-200 bg-surface px-3 py-1 xl:max-h-[calc(100dvh-6rem)] xl:w-80 xl:shrink-0 xl:overflow-y-auto">
-      <h2 className="py-2 text-base font-semibold">Estadísticas</h2>
+      <h2 className="py-2 text-base font-semibold">{t.stats.title}</h2>
       <GroupStatsSection />
-      <Section title="Puentes" hint="Personas que conectan dos grupos (se marcan en la pestaña Grupos).">
+      <Section title={t.stats.bridges} hint={t.stats.bridgesHint}>
         <BridgeList />
       </Section>
       {/* Comparing voters only makes sense with individual boards. */}
@@ -54,35 +56,33 @@ export function StatsPanel() {
           <AffinitySection />
         </>
       ) : (
-        <p className="py-3 text-xs text-slate-500">
-          Las estadísticas que comparan votantes (controversia, autopercepción, sesgo y afinidad) aparecerán al revelar
-          la sala.
-        </p>
+        <p className="py-3 text-xs text-slate-500">{t.stats.lockedUntilReveal}</p>
       )}
     </aside>
   )
 }
 
 function GroupStatsSection() {
+  const t = useT()
   const groups = useRoomStore((s) => s.groups)
   const { groupStats } = useRoomMetrics()
   const groupById = new Map(groups.map((g) => [g.id, g]))
 
   return (
-    <Section title="Grupos" hint="Tamaño y posición media de consenso de sus miembros (0–100).">
+    <Section title={t.stats.groups} hint={t.stats.groupsHint}>
       {groupStats.length === 0 ? (
-        <Empty>Todavía no hay grupos.</Empty>
+        <Empty>{t.common.noGroupsYet}</Empty>
       ) : (
         <table className="w-full text-xs">
           <thead className="text-slate-500">
             <tr>
-              <th className="text-left font-normal">Grupo</th>
-              <th className="text-right font-normal">Nº</th>
-              <th className="text-right font-normal" title="Popularidad en el curso">
-                Curso
+              <th className="text-left font-normal">{t.stats.group}</th>
+              <th className="text-right font-normal">{t.stats.size}</th>
+              <th className="text-right font-normal" title={t.stats.courseHint}>
+                {t.stats.course}
               </th>
-              <th className="text-right font-normal" title="Popularidad en su grupo">
-                Grupo
+              <th className="text-right font-normal" title={t.stats.inGroupHint}>
+                {t.stats.inGroup}
               </th>
             </tr>
           </thead>
@@ -114,11 +114,12 @@ function GroupStatsSection() {
 }
 
 function PersonButton({ name }: { name: string }) {
+  const t = useT()
   const setSearch = useUiStore((s) => s.setSearch)
   return (
     <button
       type="button"
-      title="Resaltar en el tablero"
+      title={t.common.highlight}
       onClick={() => setSearch(name)}
       className="min-w-0 truncate text-left hover:text-sky-700 hover:underline"
     >
@@ -128,21 +129,22 @@ function PersonButton({ name }: { name: string }) {
 }
 
 function ControversialSection() {
+  const t = useT()
   const people = useRoomStore((s) => s.people)
   const { controversial } = useRoomMetrics()
   const nameOf = new Map(people.map((p) => [p.id, p.name]))
 
   return (
-    <Section title="Más controvertidas" hint="Mayor dispersión entre votos (mín. 2 votos).">
+    <Section title={t.stats.controversial} hint={t.stats.controversialHint}>
       {controversial.length === 0 ? (
-        <Empty>Hace falta que al menos dos personas voten a alguien.</Empty>
+        <Empty>{t.stats.controversialEmpty}</Empty>
       ) : (
         <ol className="space-y-0.5">
           {controversial.map((entry) => (
             <li key={entry.personId} className="flex items-center justify-between gap-2">
               <PersonButton name={nameOf.get(entry.personId) ?? '?'} />
               <span className="shrink-0 text-xs text-slate-500">
-                dispersión {score(entry.dispersion)} · {entry.votes} votos
+                {t.stats.dispersion(score(entry.dispersion), entry.votes)}
               </span>
             </li>
           ))}
@@ -157,17 +159,15 @@ function participantLabel(participant: Participant | undefined): string {
 }
 
 function SelfPerceptionSection() {
+  const t = useT()
   const participants = useRoomStore((s) => s.participants)
   const { selfPerception } = useRoomMetrics()
   const byId = new Map(participants.map((p) => [p.id, p]))
 
   return (
-    <Section
-      title="Autopercepción"
-      hint="Dónde se ha colocado cada uno frente a la mediana de los demás (popularidad en el curso, 0–100)."
-    >
+    <Section title={t.stats.selfPerception} hint={t.stats.selfPerceptionHint}>
       {selfPerception.length === 0 ? (
-        <Empty>Nadie ha indicado quién es en la lista («¿Quién eres en la lista?»).</Empty>
+        <Empty>{t.stats.selfPerceptionEmpty}</Empty>
       ) : (
         <ul className="space-y-1">
           {selfPerception.map((entry) => {
@@ -176,16 +176,13 @@ function SelfPerceptionSection() {
               <li key={entry.participantId}>
                 <div className="flex justify-between gap-2">
                   <span className="truncate font-medium">{participantLabel(byId.get(entry.participantId))}</span>
-                  <span className="shrink-0 text-xs text-slate-500">distancia {score(entry.distance)}</span>
+                  <span className="shrink-0 text-xs text-slate-500">{t.stats.distance(score(entry.distance))}</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Se ve: {score(entry.self?.y ?? null)} · Le ven: {score(entry.others?.y ?? null)}
-                  {entry.othersVotes > 0 && ` (${entry.othersVotes} votos)`}
+                  {t.stats.seesSelf(score(entry.self?.y ?? null))} · {t.stats.seenAs(score(entry.others?.y ?? null))}
+                  {entry.othersVotes > 0 && t.stats.votes(entry.othersVotes)}
                   {gap !== null && Math.abs(gap) >= 0.05 && (
-                    <span className={gap > 0 ? 'text-amber-700' : 'text-sky-700'}>
-                      {' '}
-                      · se ve {gap > 0 ? 'más' : 'menos'} popular
-                    </span>
+                    <span className={gap > 0 ? 'text-amber-700' : 'text-sky-700'}>{t.stats.seesSelfAs(gap > 0)}</span>
                   )}
                 </p>
               </li>
@@ -198,17 +195,15 @@ function SelfPerceptionSection() {
 }
 
 function IngroupBiasSection() {
+  const t = useT()
   const participants = useRoomStore((s) => s.participants)
   const { ingroupBias } = useRoomMetrics()
   const byId = new Map(participants.map((p) => [p.id, p]))
 
   return (
-    <Section
-      title="Sesgo de grupo"
-      hint="Cuánto más arriba que los demás coloca cada uno a la gente de sus grupos que al resto. Positivo = favorece a los suyos."
-    >
+    <Section title={t.stats.ingroupBias} hint={t.stats.ingroupBiasHint}>
       {ingroupBias.length === 0 ? (
-        <Empty>Nadie ha indicado quién es en la lista.</Empty>
+        <Empty>{t.stats.nobodyLinked}</Empty>
       ) : (
         <ul className="space-y-0.5">
           {ingroupBias.map((entry) => (
@@ -222,7 +217,7 @@ function IngroupBiasSection() {
                 >
                   {signedScore(entry.bias)}
                 </span>{' '}
-                ({entry.inGroupCount} de su grupo · {entry.outGroupCount} resto)
+                {t.stats.biasCounts(entry.inGroupCount, entry.outGroupCount)}
               </span>
             </li>
           ))}
@@ -233,18 +228,16 @@ function IngroupBiasSection() {
 }
 
 function AffinitySection() {
+  const t = useT()
   const participants = useRoomStore((s) => s.participants)
   const { voterAffinity } = useRoomMetrics()
   const byId = new Map(participants.map((p) => [p.id, p]))
   const ids = voterAffinity.participantIds
 
   return (
-    <Section
-      title="Afinidad entre votantes"
-      hint="Parecido entre tableros (100 = idénticos), sobre las personas que ambos han colocado (mín. 5)."
-    >
+    <Section title={t.stats.affinity} hint={t.stats.affinityHint}>
       {ids.length < 2 ? (
-        <Empty>Hacen falta al menos dos participantes.</Empty>
+        <Empty>{t.stats.affinityEmpty}</Empty>
       ) : (
         <div className="overflow-x-auto">
           <table className="text-xs">

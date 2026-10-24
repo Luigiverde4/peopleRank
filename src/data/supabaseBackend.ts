@@ -1,4 +1,5 @@
 import { createClient, type PostgrestError, type RealtimeChannel } from '@supabase/supabase-js'
+import { AppError } from '../lib/appError'
 import type { DataBackend, RoomConnection, RoomEventHandlers, RoomMembership } from './backend'
 import type { Database } from './database.types'
 import { newId } from './ids'
@@ -39,10 +40,10 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
     const { data, error: sessionError } = await client.auth.getSession()
     // A failed read (e.g. the auth lock held by another tab) must not be mistaken for
     // "no session": signing in again would create a second anonymous participant.
-    if (sessionError) throw new Error(`No se pudo recuperar la sesión: ${sessionError.message}`)
+    if (sessionError) throw new AppError('sessionReadFailed', sessionError.message)
     if (data.session) return data.session.user.id
     const { data: signInData, error } = await client.auth.signInAnonymously()
-    if (error || !signInData.user) throw new Error(error?.message ?? 'No se pudo iniciar sesión')
+    if (error || !signInData.user) throw new AppError('signInFailed', error?.message)
     return signInData.user.id
   }
 
@@ -83,7 +84,7 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
       const roomRow = check(await client.rpc('join_room', { slug, display_name: displayName }))
       const room = toRoom(roomRow)
       const me = await myParticipant(room.id)
-      if (!me) throw new Error('No se pudo entrar en la sala')
+      if (!me) throw new AppError('joinFailed')
       return { room, me }
     },
 
@@ -268,7 +269,7 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
 
     async revealRoom(roomId) {
       const rows = check(await client.from('rooms').update({ revealed: true }).eq('id', roomId).select('id'))
-      if (rows.length === 0) throw new Error('Solo quien creó la sala puede revelarla')
+      if (rows.length === 0) throw new AppError('onlyCreatorReveals')
     },
 
     async uploadPhoto(roomId, photo) {

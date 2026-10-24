@@ -81,11 +81,12 @@ Verificado en el navegador:
   - En el consenso, las fichas que se pisaban se separan.
 
 - **Modo oscuro** con selector Sistema / Claro / Oscuro (a nivel de paleta).
+- **Español e inglés** con selector ES / EN (`src/i18n/`), incluidos los errores y el informe HTML. Verificado en el navegador: portada y sala demo completas en los dos idiomas, y el error de sala inexistente traducido.
 - **Subgrupos** de dos niveles con herencia de pertenencia (migración `20261024170000_subgroups.sql`).
 - **Puentes manuales** entre grupos (migración `20261024190000_bridges.sql`); el cálculo automático se ha quitado.
 - **Importación de fotos** por nombre de fichero y preset local de la orla (52 de 52 asignadas en la prueba).
 - **Exportar** PNG, sesión JSON e informe HTML; **importar** una sesión en una sala nueva (probado de punta a punta).
-- `verify:rls` cubre también el tablero común y los puentes: 42 comprobaciones en verde. 101 tests de Vitest.
+- `verify:rls` cubre también el tablero común y los puentes: 42 comprobaciones en verde. 110 tests de Vitest.
 
 ## Incidente: fotos subidas por error
 

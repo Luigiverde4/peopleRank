@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useT } from '../../i18n'
 import { useRoomStore } from '../../store/roomStore'
 import { useGroupTree } from '../useGroupTree'
 import { BridgeList } from './BridgeList'
@@ -7,6 +8,7 @@ const selectClass = 'min-w-0 flex-1 rounded-md border border-slate-300 bg-surfac
 
 /** Pick group A and group B, then one person of each, to mark them as a bridge between both groups. */
 export function BridgesEditor() {
+  const t = useT()
   const people = useRoomStore((s) => s.people)
   const addBridge = useRoomStore((s) => s.addBridge)
   const { orderedGroups, effectiveMemberships } = useGroupTree()
@@ -27,7 +29,7 @@ export function BridgesEditor() {
   }, [effectiveMemberships, people])
 
   if (orderedGroups.length < 2) {
-    return <p className="text-xs text-slate-500">Hacen falta al menos dos grupos para marcar puentes.</p>
+    return <p className="text-xs text-slate-500">{t.bridges.needTwoGroups}</p>
   }
 
   const groupOptions = (exclude: string) =>
@@ -61,7 +63,7 @@ export function BridgesEditor() {
       >
         <div className="flex items-center gap-2">
           <select
-            aria-label="Grupo A"
+            aria-label={t.bridges.groupA}
             value={groupAId}
             onChange={(event) => {
               setGroupAId(event.target.value)
@@ -69,14 +71,14 @@ export function BridgesEditor() {
             }}
             className={selectClass}
           >
-            <option value="">Grupo A…</option>
+            <option value="">{t.bridges.pickGroupA}</option>
             {groupOptions(groupBId)}
           </select>
           <span aria-hidden className="text-slate-400">
             ↔
           </span>
           <select
-            aria-label="Grupo B"
+            aria-label={t.bridges.groupB}
             value={groupBId}
             onChange={(event) => {
               setGroupBId(event.target.value)
@@ -84,19 +86,19 @@ export function BridgesEditor() {
             }}
             className={selectClass}
           >
-            <option value="">Grupo B…</option>
+            <option value="">{t.bridges.pickGroupB}</option>
             {groupOptions(groupAId)}
           </select>
         </div>
         <div className="flex items-center gap-2">
           <select
-            aria-label="Persona del grupo A"
+            aria-label={t.bridges.personOfA}
             value={personAId}
             disabled={!groupAId}
             onChange={(event) => setPersonAId(event.target.value)}
             className={selectClass}
           >
-            <option value="">{groupAId ? 'Persona de A…' : 'Elige el grupo A'}</option>
+            <option value="">{groupAId ? t.bridges.pickPersonA : t.bridges.chooseGroupA}</option>
             {membersA.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -107,13 +109,13 @@ export function BridgesEditor() {
             —
           </span>
           <select
-            aria-label="Persona del grupo B"
+            aria-label={t.bridges.personOfB}
             value={personBId}
             disabled={!groupBId}
             onChange={(event) => setPersonBId(event.target.value)}
             className={selectClass}
           >
-            <option value="">{groupBId ? 'Persona de B…' : 'Elige el grupo B'}</option>
+            <option value="">{groupBId ? t.bridges.pickPersonB : t.bridges.chooseGroupB}</option>
             {membersB.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -126,7 +128,7 @@ export function BridgesEditor() {
           disabled={!ready}
           className="self-start rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
         >
-          Añadir puente
+          {t.bridges.add}
         </button>
       </form>
       <BridgeList editable />

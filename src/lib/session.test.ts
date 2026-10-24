@@ -27,9 +27,9 @@ describe('session files', () => {
   })
 
   it('rejects files that are not sessions', () => {
-    expect(() => parseSessionFile('no es json')).toThrow('JSON válido')
-    expect(() => parseSessionFile('{"hola": 1}')).toThrow('sesión de peopleRank')
-    expect(() => parseSessionFile('{"format": "peopleRank-session", "version": 99}')).toThrow('versión')
+    expect(() => parseSessionFile('no es json')).toThrow('invalidJson')
+    expect(() => parseSessionFile('{"hola": 1}')).toThrow('notASession')
+    expect(() => parseSessionFile('{"format": "peopleRank-session", "version": 99}')).toThrow('unsupportedSessionVersion')
   })
 
   it('drops rows that point to missing people or groups, or have coordinates out of range', () => {

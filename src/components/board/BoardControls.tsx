@@ -1,3 +1,4 @@
+import { useT } from '../../i18n'
 import { useUiStore } from '../../store/uiStore'
 import { useGroupTree } from '../useGroupTree'
 import { ExportMenu } from './ExportMenu'
@@ -29,6 +30,7 @@ export function BoardControls() {
 
 /** Name search (highlights matches), names toggle and group filter (dims the rest). */
 function SearchAndFilter() {
+  const t = useT()
   const { orderedGroups: groups } = useGroupTree()
   const groupFilter = useUiStore((s) => s.groupFilter)
   const search = useUiStore((s) => s.search)
@@ -41,16 +43,16 @@ function SearchAndFilter() {
         type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        placeholder="Buscar por nombre…"
-        aria-label="Buscar por nombre"
+        placeholder={t.controls.search}
+        aria-label={t.controls.searchLabel}
         className="w-44 rounded-md border border-slate-300 bg-surface px-2 py-1 text-sm outline-none focus:border-sky-400"
       />
       <label className="flex items-center gap-1 text-xs text-slate-600">
         <input type="checkbox" checked={showNames} onChange={(event) => setShowNames(event.target.checked)} />
-        Nombres
+        {t.controls.names}
       </label>
       {groups.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1" aria-label="Filtrar por grupos">
+        <div className="flex flex-wrap items-center gap-1" aria-label={t.controls.filterLabel}>
           {groups.map((group) => {
             const active = groupFilter.includes(group.id)
             return (
@@ -71,7 +73,7 @@ function SearchAndFilter() {
           })}
           {groupFilter.length > 0 && (
             <button type="button" onClick={clearGroupFilter} className="px-1 text-xs text-sky-700 hover:underline">
-              Quitar filtro
+              {t.controls.clearFilter}
             </button>
           )}
         </div>

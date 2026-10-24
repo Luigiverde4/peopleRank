@@ -1,3 +1,4 @@
+import { AppError } from '../lib/appError'
 import type { DataBackend, RoomConnection, RoomEventHandlers, RoomMembership } from './backend'
 import { newId, newSlug } from './ids'
 import {
@@ -80,7 +81,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
     try {
       storage?.setItem(MEMORY_STORAGE_KEY, JSON.stringify(db))
     } catch (error) {
-      console.error('No se pudo guardar en localStorage', error)
+      console.error('Could not save to localStorage', error)
     }
   }
 
@@ -94,7 +95,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
 
   function findRoom(roomId: string): Room {
     const room = db.rooms.find((candidate) => candidate.id === roomId)
-    if (!room) throw new Error('Sala no encontrada')
+    if (!room) throw new AppError('roomNotFound')
     return room
   }
 
@@ -144,7 +145,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
     async joinRoom(slug, displayName) {
       db = loadDb()
       const room = db.rooms.find((candidate) => candidate.slug === slug)
-      if (!room) throw new Error('Sala no encontrada')
+      if (!room) throw new AppError('roomNotFound')
       const existing = membershipFor(room)
       if (existing) return existing
       const me = mutate(() => addParticipant(room.id, displayName))
@@ -267,7 +268,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
             b.personAId === bridge.personAId &&
             b.personBId === bridge.personBId,
         )
-        if (duplicate) throw new Error('Ese puente ya existe')
+        if (duplicate) throw new AppError('bridgeExists')
         current.bridges.push({ ...bridge, id: newId(), createdAt: now() })
       })
     },
@@ -321,7 +322,7 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
     async saveSharedPlacement(placement) {
       mutate((current) => {
         const room = current.rooms.find((r) => r.id === placement.roomId)
-        if (room?.mode !== 'general') throw new Error('Esta sala no tiene tablero común')
+        if (room?.mode !== 'general') throw new AppError('noSharedBoard')
         current.sharedPlacements = current.sharedPlacements.filter(
           (p) => !(p.roomId === placement.roomId && p.personId === placement.personId),
         )
@@ -387,9 +388,9 @@ export function createMemoryBackend(storage: Storage | null = globalThis.localSt
 function assertValidParent(groups: Group[], groupId: string, parentId: string | null): void {
   if (parentId === null) return
   const parent = groups.find((g) => g.id === parentId)
-  if (!parent || parentId === groupId) throw new Error('Grupo padre no válido')
-  if (parent.parentId !== null) throw new Error('Un subgrupo no puede tener subgrupos')
-  if (groups.some((g) => g.parentId === groupId)) throw new Error('Un grupo con subgrupos no puede ser subgrupo')
+  if (!parent || parentId === groupId) throw new AppError('invalidParent')
+  if (parent.parentId !== null) throw new AppError('subgroupCannotNest')
+  if (groups.some((g) => g.parentId === groupId)) throw new AppError('parentCannotNest')
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {

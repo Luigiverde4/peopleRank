@@ -1,3 +1,4 @@
+import { useT } from '../../i18n'
 import { useUiStore } from '../../store/uiStore'
 
 const controlClass =
@@ -5,19 +6,20 @@ const controlClass =
 
 /** Zoom buttons for the boards, in the toolbar so they never cover a corner of the board. */
 export function ZoomControls() {
+  const t = useT()
   const scale = useUiStore((s) => s.viewport.scale)
   const { zoomIn, zoomOut, resetViewport } = useUiStore.getState()
 
   return (
     <div
       role="group"
-      aria-label="Zoom del tablero"
+      aria-label={t.zoom.label}
       className="flex items-center gap-0.5 rounded-md border border-slate-300 bg-surface p-0.5"
     >
       <button
         type="button"
-        aria-label="Alejar"
-        title="Alejar"
+        aria-label={t.zoom.out}
+        title={t.zoom.out}
         className={controlClass}
         onClick={zoomOut}
         disabled={scale <= 1}
@@ -26,14 +28,14 @@ export function ZoomControls() {
       </button>
       <span
         className="w-11 text-center text-xs tabular-nums text-slate-500"
-        title="Rueda del ratón sobre el tablero para hacer zoom"
+        title={t.zoom.wheelHint}
       >
         {Math.round(scale * 100)}%
       </span>
       <button
         type="button"
-        aria-label="Acercar"
-        title="Acercar (o rueda del ratón)"
+        aria-label={t.zoom.in}
+        title={t.zoom.inHint}
         className={controlClass}
         onClick={zoomIn}
       >
@@ -41,12 +43,12 @@ export function ZoomControls() {
       </button>
       <button
         type="button"
-        title="Ver el tablero entero"
+        title={t.zoom.fitHint}
         className={controlClass}
         onClick={resetViewport}
         disabled={scale <= 1}
       >
-        Ajustar
+        {t.zoom.fit}
       </button>
     </div>
   )

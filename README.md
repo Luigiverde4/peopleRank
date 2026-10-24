@@ -11,7 +11,7 @@ Cada sala tiene un **modo de juego**, que se elige al crearla y no cambia:
 - **General:** un solo tablero que movéis todos a la vez mientras lo discutís en la llamada.
 - **VS:** cada uno coloca a todos en su propio tablero. Mientras la sala está en **modo ciego**, cada uno solo ve el suyo (lo garantiza la base de datos con RLS). Cuando quien creó la sala pulsa **Revelar**, todos ven todos los tableros, el consenso y las estadísticas.
 
-Además: grupos y subgrupos, puentes entre grupos, fotos (con importación masiva por nombre de fichero), zoom en el tablero, grafo de grupos, modo oscuro, y exportar la sala como imagen, sesión JSON (para continuarla en otra sala) o informe HTML.
+Además: grupos y subgrupos, puentes entre grupos, fotos (con importación masiva por nombre de fichero), zoom en el tablero, grafo de grupos, modo oscuro, interfaz en español o inglés, y exportar la sala como imagen, sesión JSON (para continuarla en otra sala) o informe HTML.
 
 Stack: Vite + React + TypeScript, React Router, Zustand, Tailwind, Supabase (Postgres, Realtime, Storage y auth anónima) y Vitest.
 

@@ -84,6 +84,15 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **`bg-surface`** sustituye a `bg-white` en paneles, tarjetas y campos. Los `hover` de los botones de color usan el tono 500, porque el 700 cambia en oscuro.
 - El lienzo del grafo usa sus propios colores por tema, porque no puede leer clases de Tailwind.
 
+## Idiomas (español e inglés)
+
+- **Sin librería:** un diccionario por idioma en `src/i18n/` (objeto tipado; los textos con números o nombres son funciones, así cada idioma resuelve sus plurales). `en.ts` se tipa con `Messages = typeof es`, así que TypeScript avisa si falta un texto.
+- **Idioma inicial:** el que se haya elegido antes (`localStorage`); si no, el primer idioma soportado del navegador; si no, español.
+- **Selector ES / EN** junto al del tema, en la portada y en la cabecera de la sala. Cada persona ve la app en su idioma; no es una opción de la sala.
+- **Errores:** las capas de datos lanzan `AppError` con un código, y la UI lo traduce. Las excepciones conocidas de la base de datos («Room not found», las de subgrupos) también se traducen; cualquier otro error se muestra tal cual.
+- **Datos del usuario sin traducir:** nombres de personas, grupos y salas se quedan como se escribieron. El nombre por defecto de una sala nueva sí depende del idioma («Votación del 24/10» / «Vote of 24 Oct»).
+- **Exportaciones:** el informe HTML y los nombres de los ficheros salen en el idioma activo al exportar. El formato de la sesión JSON no cambia.
+
 ## Zoom y desplazamiento del tablero
 
 - **Las fichas no crecen con el zoom:** lo que se amplía es el espacio entre ellas, que es lo que desatasca un tablero lleno. Los halos del consenso sí escalan, porque son distancias del tablero.

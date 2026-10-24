@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { escapeHtml, renderReportHtml, type ReportData } from './report'
 
 const data: ReportData = {
+  labels: {
+    lang: 'en',
+    locale: 'en-GB',
+    groups: 'Groups',
+    axisTop: 'High ↑',
+    axisLeft: 'Periphery',
+    axisRight: 'Center →',
+    noData: 'No data',
+    footer: 'Made with <peopleRank>',
+  },
   title: 'Votación <del> 24/10',
   subtitle: 'Modo General',
   generatedAt: new Date('2026-10-24T12:00:00Z'),
@@ -35,6 +45,13 @@ describe('renderReportHtml', () => {
     expect(html).toContain('<title>Votación &lt;del&gt; 24/10 · peopleRank</title>')
     expect(html).toContain('Tablero común')
     expect(html).toContain('Fútbol &amp; cía')
+  })
+
+  it('uses the labels of the export language', () => {
+    expect(html).toContain('<html lang="en">')
+    expect(html).toContain('>High ↑</text>')
+    expect(html).toContain('<footer>Made with &lt;peopleRank&gt;</footer>')
+    expect(html).toContain('24 October 2026')
   })
 
   it('escapes names and never lets bad colors or photo URLs through', () => {

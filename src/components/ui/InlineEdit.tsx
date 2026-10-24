@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '../../i18n'
 
 interface InlineEditProps {
   value: string
@@ -9,13 +10,14 @@ interface InlineEditProps {
 
 /** Text that turns into an input on click; saves on Enter or blur, cancels on Escape. */
 export function InlineEdit({ value, onSave, label, className = '' }: InlineEditProps) {
+  const t = useT()
   const [draft, setDraft] = useState<string | null>(null)
 
   if (draft === null) {
     return (
       <button
         type="button"
-        title={`Renombrar ${value}`}
+        title={t.common.rename(value)}
         className={`min-w-0 truncate rounded px-1 text-left hover:bg-slate-100 ${className}`}
         onClick={() => setDraft(value)}
       >

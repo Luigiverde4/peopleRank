@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react'
+import { describeError, useT } from '../i18n'
 import { dismissError, useRoomStore } from '../store/roomStore'
 import { effectiveView, useUiStore } from '../store/uiStore'
+import { RoomHeader } from './RoomHeader'
 import { BoardControls } from './board/BoardControls'
 import { ConsensusBoard } from './board/ConsensusBoard'
 import { MyBoard } from './board/MyBoard'
 import { ParticipantBoard } from './board/ParticipantBoard'
-import { RoomHeader } from './RoomHeader'
 import { SidePanel } from './side/SidePanel'
 import { StatsPanel } from './stats/StatsPanel'
 
@@ -14,11 +15,12 @@ const GroupGraph = lazy(() => import('./graph/GroupGraph'))
 
 /** Layout of an open room: header, side panel and the board of the selected view. */
 export function RoomScreen() {
+  const t = useT()
   const status = useRoomStore((s) => s.status)
   const error = useRoomStore((s) => s.error)
 
   if (status === 'loading' || status === 'idle') {
-    return <p className="p-6 text-slate-500">Cargando sala…</p>
+    return <p className="p-6 text-slate-500">{t.common.loadingRoom}</p>
   }
 
   return (
@@ -26,9 +28,9 @@ export function RoomScreen() {
       <RoomHeader />
       {error && (
         <div role="alert" className="flex items-center gap-2 bg-rose-50 px-4 py-1.5 text-sm text-rose-700">
-          {error}
+          {describeError(error, t)}
           <button type="button" className="ml-auto text-xs underline" onClick={dismissError}>
-            Cerrar
+            {t.common.close}
           </button>
         </div>
       )}
@@ -47,6 +49,7 @@ export function RoomScreen() {
 }
 
 function SelectedBoard() {
+  const t = useT()
   const chosen = useUiStore((s) => s.view)
   const revealed = useRoomStore((s) => s.room?.revealed ?? false)
   const mode = useRoomStore((s) => s.room?.mode ?? 'vs')
@@ -60,7 +63,7 @@ function SelectedBoard() {
       return <ConsensusBoard />
     case 'graph':
       return (
-        <Suspense fallback={<p className="text-sm text-slate-500">Cargando grafo…</p>}>
+        <Suspense fallback={<p className="text-sm text-slate-500">{t.board.loadingGraph}</p>}>
           <GroupGraph />
         </Suspense>
       )

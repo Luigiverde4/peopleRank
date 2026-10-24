@@ -1,4 +1,5 @@
 import type { GameMode } from '../data/types'
+import { AppError } from './appError'
 
 /**
  * Portable snapshot of a room, to save a session and continue it later in a new room.
@@ -46,16 +47,16 @@ function rows(value: unknown): Json[] {
   return Array.isArray(value) ? value.filter(isObject) : []
 }
 
-/** Reads a session file; throws an Error with a message for the user when it is not one. */
+/** Reads a session file; throws an AppError when it is not one. A missing room name is left empty. */
 export function parseSessionFile(text: string): SessionFile {
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
-    throw new Error('El fichero no es un JSON válido')
+    throw new AppError('invalidJson')
   }
-  if (!isObject(data) || data.format !== SESSION_FORMAT) throw new Error('El fichero no es una sesión de peopleRank')
-  if (data.version !== SESSION_VERSION) throw new Error('Esta versión de la sesión no está soportada')
+  if (!isObject(data) || data.format !== SESSION_FORMAT) throw new AppError('notASession')
+  if (data.version !== SESSION_VERSION) throw new AppError('unsupportedSessionVersion')
   const room = isObject(data.room) ? data.room : {}
   const mode: GameMode = room.mode === 'general' ? 'general' : 'vs'
 
@@ -87,7 +88,7 @@ export function parseSessionFile(text: string): SessionFile {
     version: SESSION_VERSION,
     exportedAt: isString(data.exportedAt) ? data.exportedAt : new Date(0).toISOString(),
     room: {
-      name: isString(room.name) ? room.name.slice(0, 100) : 'Sesión importada',
+      name: isString(room.name) ? room.name.slice(0, 100) : '',
       mode,
       revealed: room.revealed === true,
     },

@@ -1,3 +1,4 @@
+import { AppError } from './appError'
 export const PHOTO_SIZE = 256
 const WEBP_QUALITY = 0.85
 
@@ -25,12 +26,12 @@ export async function resizeToWebp(image: Blob, size = PHOTO_SIZE): Promise<Blob
     canvas.width = size
     canvas.height = size
     const context = canvas.getContext('2d')
-    if (!context) throw new Error('No se pudo procesar la imagen')
+    if (!context) throw new AppError('imageProcessingFailed')
     context.imageSmoothingQuality = 'high'
     context.drawImage(bitmap, sx, sy, side, side, 0, 0, size, size)
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY))
     // Browsers without WebP encoding silently fall back to PNG.
-    if (!blob || blob.type !== 'image/webp') throw new Error('Este navegador no puede generar imágenes WebP')
+    if (!blob || blob.type !== 'image/webp') throw new AppError('webpUnsupported')
     return blob
   } finally {
     bitmap.close()

@@ -1,4 +1,5 @@
 import type { Person } from '../../data/types'
+import { useT } from '../../i18n'
 import { Token } from '../Token'
 import type { TokenLook } from '../useTokenStyles'
 import type { TokenDragHandlers } from './useTokenDrag'
@@ -12,13 +13,14 @@ interface TrayProps {
 
 /** People not placed yet on my board. Dragging a placed token out of the board brings it back here. */
 export function Tray({ people, lookOf, draggingId, handlersFor }: TrayProps) {
+  const t = useT()
   return (
     <section className="flex w-full flex-col rounded-lg border border-slate-200 bg-surface xl:max-h-full xl:min-w-0 xl:flex-1">
       <h2 className="border-b border-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
-        Sin colocar <span className="font-normal text-slate-400">({people.length})</span>
+        {t.board.unplaced} <span className="font-normal text-slate-400">({people.length})</span>
       </h2>
       {people.length === 0 ? (
-        <p className="px-3 py-4 text-sm text-slate-400">Todo el mundo está colocado.</p>
+        <p className="px-3 py-4 text-sm text-slate-400">{t.board.allPlaced}</p>
       ) : (
         <ul className="flex max-h-60 flex-wrap gap-x-1 gap-y-2 overflow-y-auto p-2 xl:max-h-none">
           {people.map((person) => {

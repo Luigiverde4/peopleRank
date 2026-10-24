@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { RoomScreen } from '../components/RoomScreen'
 import { backend, type RoomMembership } from '../data'
+import { describeError, useT } from '../i18n'
 import { loadDisplayName, saveDisplayName } from '../lib/displayName'
 import { useRoomStore } from '../store/roomStore'
 import { useUiStore } from '../store/uiStore'
@@ -10,14 +11,11 @@ type Entry =
   | { state: 'checking' }
   | { state: 'needs-name' }
   | { state: 'inside' }
-  | { state: 'error'; message: string }
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
+  | { state: 'error'; error: unknown }
 
 /** `/r/:slug`: opens the room if I'm already a participant, otherwise asks for a name and joins. */
 export function RoomPage() {
+  const t = useT()
   const { slug = '' } = useParams()
   const [entry, setEntry] = useState<Entry>({ state: 'checking' })
 
@@ -30,7 +28,7 @@ export function RoomPage() {
         if (membership) await openRoom(membership)
         if (!cancelled) setEntry(membership ? { state: 'inside' } : { state: 'needs-name' })
       } catch (error) {
-        if (!cancelled) setEntry({ state: 'error', message: errorMessage(error) })
+        if (!cancelled) setEntry({ state: 'error', error })
       }
     }
     void enter()
@@ -47,23 +45,21 @@ export function RoomPage() {
       await openRoom(await backend.joinRoom(slug, displayName))
       setEntry({ state: 'inside' })
     } catch (error) {
-      setEntry({ state: 'error', message: errorMessage(error) })
+      setEntry({ state: 'error', error })
     }
   }
 
   switch (entry.state) {
     case 'checking':
-      return <p className="p-6 text-slate-500">Entrando en la sala…</p>
+      return <p className="p-6 text-slate-500">{t.join.entering}</p>
     case 'needs-name':
       return <JoinForm onJoin={join} />
     case 'error':
       return (
         <main className="mx-auto max-w-md p-6">
-          <p className="text-rose-600">
-            {entry.message === 'Room not found' ? 'No existe ninguna sala con ese enlace.' : entry.message}
-          </p>
+          <p className="text-rose-600">{describeError(entry.error, t)}</p>
           <Link to="/" className="mt-4 inline-block text-sky-700 underline">
-            Volver al inicio
+            {t.join.backHome}
           </Link>
         </main>
       )
@@ -77,6 +73,7 @@ function openRoom({ room, me }: RoomMembership): Promise<void> {
 }
 
 function JoinForm({ onJoin }: { onJoin(displayName: string): Promise<void> }) {
+  const t = useT()
   const [displayName, setDisplayName] = useState(loadDisplayName)
   const [busy, setBusy] = useState(false)
 
@@ -89,16 +86,16 @@ function JoinForm({ onJoin }: { onJoin(displayName: string): Promise<void> }) {
   return (
     <main className="mx-auto flex min-h-full max-w-sm flex-col justify-center px-4">
       <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
-        <h1 className="text-lg font-semibold">Unirse a la sala</h1>
-        <p className="text-sm text-slate-600">¿Cómo te llamas? Los demás verán este nombre.</p>
+        <h1 className="text-lg font-semibold">{t.join.title}</h1>
+        <p className="text-sm text-slate-600">{t.join.question}</p>
         <input
           autoFocus
           required
           maxLength={60}
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
-          placeholder="Tu nombre"
-          aria-label="Tu nombre"
+          placeholder={t.common.yourName}
+          aria-label={t.common.yourName}
           className="rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400"
         />
         <button
@@ -106,7 +103,7 @@ function JoinForm({ onJoin }: { onJoin(displayName: string): Promise<void> }) {
           disabled={busy || !displayName.trim()}
           className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
         >
-          {busy ? 'Entrando…' : 'Entrar'}
+          {busy ? t.common.entering : t.common.enter}
         </button>
       </form>
     </main>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Group } from '../../data/types'
+import { useT } from '../../i18n'
 
 interface GroupPickerProps {
   groups: Group[]
@@ -10,6 +11,7 @@ interface GroupPickerProps {
 /** Multi-select of groups shown as a small dropdown with checkboxes. */
 export function GroupPicker({ groups, selectedIds, onChange }: GroupPickerProps) {
   // The checklist renders only while open, so a long people list does not carry one per row.
+  const t = useT()
   const [open, setOpen] = useState(false)
   if (groups.length === 0) return null
 
@@ -19,7 +21,7 @@ export function GroupPicker({ groups, selectedIds, onChange }: GroupPickerProps)
   return (
     <details className="relative shrink-0" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary className="cursor-pointer list-none rounded px-1.5 text-xs text-slate-500 hover:bg-slate-100">
-        {selectedIds.length === 0 ? '+ grupo' : `${selectedIds.length} grupo${selectedIds.length > 1 ? 's' : ''}`}
+        {selectedIds.length === 0 ? t.people.addGroup : t.people.groupCount(selectedIds.length)}
       </summary>
       {open && (
         <div className="absolute right-0 z-40 mt-1 max-h-64 w-48 overflow-y-auto rounded-md border border-slate-200 bg-surface p-1 shadow-lg">

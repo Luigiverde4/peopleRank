@@ -32,7 +32,7 @@ export function Board({ boardRef, viewport, children, active = false }: BoardPro
   const zoomed = viewport.view.scale > 1
 
   return (
-    <div data-board-export className="flex w-full flex-col items-center bg-white">
+    <div data-board-export className="flex w-full flex-col items-center bg-surface">
       <div className="flex w-full items-stretch gap-1">
         <div className="flex w-5 shrink-0 flex-col items-center justify-between py-1 text-[11px] text-slate-500">
           <span>Alta</span>
@@ -43,7 +43,7 @@ export function Board({ boardRef, viewport, children, active = false }: BoardPro
         </div>
         <div
           ref={boardRef}
-          className={`relative aspect-square w-full touch-none rounded-lg border bg-white shadow-inner transition-colors ${
+          className={`relative aspect-square w-full touch-none rounded-lg border bg-surface shadow-inner transition-colors ${
             active ? 'border-sky-400' : 'border-slate-300'
           } ${zoomed ? 'cursor-grab overflow-hidden active:cursor-grabbing' : ''}`}
           {...viewport.backgroundHandlers}

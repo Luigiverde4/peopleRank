@@ -12,7 +12,7 @@ export function SidePanel() {
   const setSideTab = useUiStore((s) => s.setSideTab)
 
   return (
-    <aside className="flex max-h-[70dvh] flex-col rounded-lg border border-slate-200 bg-white lg:max-h-none lg:min-h-0">
+    <aside className="flex max-h-[70dvh] flex-col rounded-lg border border-slate-200 bg-surface lg:max-h-none lg:min-h-0">
       <div role="tablist" className="flex border-b border-slate-200">
         {TABS.map((tab) => (
           <button

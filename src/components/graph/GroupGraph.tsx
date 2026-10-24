@@ -5,7 +5,14 @@ import { NO_GROUP_COLOR } from '../../lib/colors'
 import { groupGraph } from '../../lib/graph'
 import { initials } from '../../lib/names'
 import { useRoomStore } from '../../store/roomStore'
+import { useThemeStore } from '../../store/themeStore'
 import { useTokenStyles, type TokenLook } from '../useTokenStyles'
+
+/** Canvas colors per theme (the canvas cannot read Tailwind classes). */
+const CANVAS_COLORS = {
+  light: { background: '#ffffff', node: '#ffffff', text: '#334155' },
+  dark: { background: '#131b2e', node: '#1e293b', text: '#e2e8f0' },
+}
 
 const NODE_RADIUS = 7
 const RING_WIDTH = 2
@@ -29,6 +36,7 @@ export default function GroupGraph() {
   const groups = useRoomStore((s) => s.groups)
   const memberships = useRoomStore((s) => s.memberships)
   const { lookOf } = useTokenStyles()
+  const colors = CANVAS_COLORS[useThemeStore((s) => s.resolved)]
   const containerRef = useRef<HTMLDivElement>(null)
   const graphRef = useRef<ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLinkDatum>>>(undefined)
   const size = useSquareSize(containerRef)
@@ -59,7 +67,7 @@ export default function GroupGraph() {
         <div
           ref={containerRef}
           data-board-export
-          className="board-fit aspect-square overflow-hidden rounded-lg border border-slate-300 bg-white"
+          className="board-fit aspect-square overflow-hidden rounded-lg border border-slate-300 bg-surface"
         >
           {size > 0 && (
             <ForceGraph2D<GraphNode, GraphLinkDatum>
@@ -67,12 +75,12 @@ export default function GroupGraph() {
               width={size}
               height={size}
               graphData={graphData}
-              backgroundColor="#ffffff"
+              backgroundColor={colors.background}
               nodeLabel={(node) => node.name}
               nodeRelSize={NODE_RADIUS}
               linkColor={(link) => `${link.color}66`}
               linkWidth={(link) => link.width}
-              nodeCanvasObject={(node, context, scale) => drawNode(node, lookOf(node.person), context, scale)}
+              nodeCanvasObject={(node, context, scale) => drawNode(node, lookOf(node.person), colors, context, scale)}
               nodePointerAreaPaint={(node, color, context) => {
                 context.fillStyle = color
                 context.beginPath()
@@ -94,6 +102,7 @@ export default function GroupGraph() {
 function drawNode(
   node: GraphNode & { x?: number; y?: number },
   look: TokenLook,
+  palette: { node: string; text: string },
   context: CanvasRenderingContext2D,
   scale: number,
 ) {
@@ -121,10 +130,10 @@ function drawNode(
   context.shadowBlur = 0
   context.beginPath()
   context.arc(x, y, NODE_RADIUS, 0, 2 * Math.PI)
-  context.fillStyle = '#ffffff'
+  context.fillStyle = palette.node
   context.fill()
 
-  context.fillStyle = '#334155'
+  context.fillStyle = palette.text
   context.textAlign = 'center'
   context.textBaseline = 'middle'
   context.font = `600 ${NODE_RADIUS * 0.9}px sans-serif`

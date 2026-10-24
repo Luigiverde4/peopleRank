@@ -13,7 +13,7 @@ interface ConfirmButtonProps {
 
 const IDLE_CLASSES = {
   subtle: 'px-1.5 text-xs text-slate-400 hover:bg-rose-50 hover:text-rose-600',
-  primary: 'px-3 py-1 text-sm font-medium bg-violet-600 text-white hover:bg-violet-700',
+  primary: 'px-3 py-1 text-sm font-medium bg-violet-600 text-white hover:bg-violet-500',
 }
 
 const ARMED_CLASSES = {

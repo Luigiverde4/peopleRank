@@ -62,11 +62,11 @@ export function Token({
             src={photoUrl}
             alt={name}
             draggable={false}
-            className="h-full w-full rounded-full bg-white object-cover"
+            className="h-full w-full rounded-full bg-surface object-cover"
           />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center rounded-full bg-white font-semibold text-slate-700"
+            className="flex h-full w-full items-center justify-center rounded-full bg-surface font-semibold text-slate-700"
             style={{ fontSize: size * 0.34 }}
           >
             {initials(name)}
@@ -74,12 +74,12 @@ export function Token({
         )}
       </div>
       {badge !== undefined && (
-        <span className="absolute -right-1.5 -top-1.5 rounded-full bg-slate-800 px-1 text-[10px] leading-4 text-white">
+        <span className="absolute -right-1.5 -top-1.5 rounded-full bg-slate-800 px-1 text-[10px] leading-4 text-slate-50">
           {badge}
         </span>
       )}
       <span
-        className={`pointer-events-none absolute top-full mt-0.5 max-w-24 truncate rounded bg-white/90 px-1 text-[11px] leading-4 text-slate-700 shadow-sm ${
+        className={`pointer-events-none absolute top-full mt-0.5 max-w-24 truncate rounded bg-surface/90 px-1 text-[11px] leading-4 text-slate-700 shadow-sm ${
           showLabel || highlighted ? 'block' : 'hidden group-hover/token:block'
         }`}
       >

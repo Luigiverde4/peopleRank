@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { backend } from '../data'
 import { useRoomStore } from '../store/roomStore'
 import { ConfirmButton } from './ui/ConfirmButton'
+import { ThemeToggle } from './ui/ThemeToggle'
 
 export function RoomHeader() {
   const room = useRoomStore((s) => s.room)
@@ -11,7 +12,7 @@ export function RoomHeader() {
   if (!room || !me) return null
 
   return (
-    <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-2">
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-surface px-4 py-2">
       <Link to="/" className="text-sm font-bold text-sky-700">
         peopleRank
       </Link>
@@ -22,6 +23,7 @@ export function RoomHeader() {
       )}
       <OnlineList />
       <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-2">
+        <ThemeToggle />
         {room.mode === 'general' ? (
           <span
             className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
@@ -134,7 +136,7 @@ function WhoAmISelect() {
       <select
         value={me.personId ?? ''}
         onChange={(event) => void setMyPerson(event.target.value || null)}
-        className="max-w-44 rounded-md border border-slate-300 bg-white px-1 py-0.5 text-sm"
+        className="max-w-44 rounded-md border border-slate-300 bg-surface px-1 py-0.5 text-sm"
       >
         <option value="">— Nadie —</option>
         {people.map((person) => (

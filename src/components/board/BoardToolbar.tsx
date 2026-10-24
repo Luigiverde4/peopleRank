@@ -21,7 +21,7 @@ export function BoardToolbar() {
         onChange={(event) => setSearch(event.target.value)}
         placeholder="Buscar por nombre…"
         aria-label="Buscar por nombre"
-        className="w-44 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-sky-400"
+        className="w-44 rounded-md border border-slate-300 bg-surface px-2 py-1 text-sm outline-none focus:border-sky-400"
       />
       <label className="flex items-center gap-1 text-xs text-slate-600">
         <input type="checkbox" checked={showNames} onChange={(event) => setShowNames(event.target.checked)} />
@@ -38,7 +38,7 @@ export function BoardToolbar() {
                 aria-pressed={active}
                 onClick={() => toggleGroupFilter(group.id)}
                 className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${
-                  active ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-300 bg-white text-slate-600'
+                  active ? 'border-slate-700 bg-slate-800 text-slate-50' : 'border-slate-300 bg-surface text-slate-600'
                 }`}
               >
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: group.color }} />
@@ -80,7 +80,7 @@ function ExportButton() {
       type="button"
       disabled={busy}
       onClick={() => void exportPng()}
-      className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+      className="rounded-md border border-slate-300 bg-surface px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
     >
       {busy ? 'Exportando…' : 'Exportar PNG'}
     </button>

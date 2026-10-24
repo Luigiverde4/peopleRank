@@ -3,7 +3,7 @@ import { useUiStore } from '../../store/uiStore'
 
 const tabClass = (active: boolean) =>
   `rounded-md px-3 py-1 text-sm font-medium ${
-    active ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50'
+    active ? 'bg-slate-800 text-slate-50' : 'bg-surface text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50'
   }`
 
 /**

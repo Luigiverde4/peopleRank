@@ -58,6 +58,13 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Modo oscuro
+
+- **Selector Sistema / Claro / Oscuro** en la portada y la cabecera; se guarda en `localStorage` y un script en `index.html` lo aplica antes de pintar.
+- **A nivel de paleta:** con la clase `dark` en `<html>` se invierte la escala slate y se intercambian los tonos claros y oscuros (50–300 ↔ 700–950) de los colores de acento. Los componentes no llevan variantes `dark:`; los valores salen de la paleta de Tailwind instalada.
+- **`bg-surface`** sustituye a `bg-white` en paneles, tarjetas y campos. Los `hover` de los botones de color usan el tono 500, porque el 700 cambia en oscuro.
+- El lienzo del grafo usa sus propios colores por tema, porque no puede leer clases de Tailwind.
+
 ## Zoom y desplazamiento del tablero
 
 - **Las fichas no crecen con el zoom:** lo que se amplía es el espacio entre ellas, que es lo que desatasca un tablero lleno. Los halos del consenso sí escalan, porque son distancias del tablero.

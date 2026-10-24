@@ -122,7 +122,7 @@ function CreateGroupForm({ onCreated }: { onCreated(groupId: string): void }) {
       <button
         type="submit"
         disabled={name.trim() === ''}
-        className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-40"
+        className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
       >
         Crear
       </button>
@@ -169,7 +169,7 @@ function GroupShortcutForm() {
           <button
             type="submit"
             disabled={text.trim() === ''}
-            className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-40"
+            className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
           >
             Aplicar
           </button>

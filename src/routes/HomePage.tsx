@@ -1,16 +1,20 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { backend, parseSlug, type GameMode } from '../data'
+import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { defaultRoomName, loadDisplayName, saveDisplayName } from '../lib/displayName'
 
 const inputClass =
-  'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400'
+  'w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm outline-none focus:border-sky-400'
 const buttonClass =
-  'rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-40'
+  'rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40'
 
 export function HomePage() {
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-8 px-4 py-10">
+      <div className="flex justify-end">
+        <ThemeToggle />
+      </div>
       <header className="text-center">
         <h1 className="text-3xl font-bold tracking-tight">peopleRank</h1>
         <p className="mt-2 text-slate-600">Clasificad a la gente del curso por popularidad, cada uno en su tablero.</p>
@@ -65,7 +69,7 @@ function CreateRoomCard() {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
       <h2 className="text-lg font-semibold">Crear sala</h2>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium text-slate-700">Modo de juego (no se puede cambiar después)</legend>
@@ -130,7 +134,7 @@ function JoinRoomCard() {
         event.preventDefault()
         if (slug) navigate(`/r/${slug}`)
       }}
-      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm"
     >
       <h2 className="text-lg font-semibold">Unirse a una sala</h2>
       <input

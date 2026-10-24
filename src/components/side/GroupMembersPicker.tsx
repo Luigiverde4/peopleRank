@@ -34,7 +34,7 @@ export function GroupMembersPicker({ group }: { group: Group }) {
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar persona…"
           aria-label={`Buscar personas para ${group.name}`}
-          className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-sky-400"
+          className="min-w-0 flex-1 rounded-md border border-slate-300 bg-surface px-2 py-1 text-sm outline-none focus:border-sky-400"
         />
         <label className="flex shrink-0 items-center gap-1 text-xs text-slate-600">
           <input type="checkbox" checked={onlyMembers} onChange={(event) => setOnlyMembers(event.target.checked)} />
@@ -45,7 +45,7 @@ export function GroupMembersPicker({ group }: { group: Group }) {
         {visible.length === 0 && <li className="px-2 py-1 text-xs text-slate-400">Nadie coincide.</li>}
         {visible.map((person) => (
           <li key={person.id}>
-            <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-white">
+            <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-surface">
               <input
                 type="checkbox"
                 checked={memberIds.has(person.id)}

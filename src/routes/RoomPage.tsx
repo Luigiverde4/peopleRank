@@ -88,7 +88,7 @@ function JoinForm({ onJoin }: { onJoin(displayName: string): Promise<void> }) {
 
   return (
     <main className="mx-auto flex min-h-full max-w-sm flex-col justify-center px-4">
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
         <h1 className="text-lg font-semibold">Unirse a la sala</h1>
         <p className="text-sm text-slate-600">¿Cómo te llamas? Los demás verán este nombre.</p>
         <input
@@ -104,7 +104,7 @@ function JoinForm({ onJoin }: { onJoin(displayName: string): Promise<void> }) {
         <button
           type="submit"
           disabled={busy || !displayName.trim()}
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-40"
+          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
         >
           {busy ? 'Entrando…' : 'Entrar'}
         </button>

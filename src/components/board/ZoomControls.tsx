@@ -12,7 +12,7 @@ export function ZoomControls() {
     <div
       role="group"
       aria-label="Zoom del tablero"
-      className="flex items-center gap-0.5 rounded-md border border-slate-300 bg-white p-0.5"
+      className="flex items-center gap-0.5 rounded-md border border-slate-300 bg-surface p-0.5"
     >
       <button
         type="button"

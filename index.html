@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>peopleRank</title>
+    <script>
+      // Apply the saved theme before the first paint (same key as src/lib/theme.ts).
+      try {
+        var theme = localStorage.getItem('peopleRank:theme')
+        var dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

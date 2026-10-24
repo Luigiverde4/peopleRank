@@ -22,7 +22,7 @@ export function GroupPicker({ groups, selectedIds, onChange }: GroupPickerProps)
         {selectedIds.length === 0 ? '+ grupo' : `${selectedIds.length} grupo${selectedIds.length > 1 ? 's' : ''}`}
       </summary>
       {open && (
-        <div className="absolute right-0 z-40 mt-1 max-h-64 w-48 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-lg">
+        <div className="absolute right-0 z-40 mt-1 max-h-64 w-48 overflow-y-auto rounded-md border border-slate-200 bg-surface p-1 shadow-lg">
           {groups.map((group) => (
             <label
               key={group.id}

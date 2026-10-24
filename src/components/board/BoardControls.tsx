@@ -1,21 +1,42 @@
-import { useState } from 'react'
-import { useRoomStore } from '../../store/roomStore'
-import { useGroupTree } from '../useGroupTree'
 import { useUiStore } from '../../store/uiStore'
-import { downloadVisibleBoard } from './exportBoard'
+import { useGroupTree } from '../useGroupTree'
+import { ExportMenu } from './ExportMenu'
+import { ViewSelector } from './ViewSelector'
 import { ZoomControls } from './ZoomControls'
 
-/** Group filter (dims the rest) and name search (highlights matches). */
-export function BoardToolbar() {
+/**
+ * Every board control in one place: views, zoom and export on top; search, names and the
+ * group filter below.
+ */
+export function BoardControls() {
+  const view = useUiStore((s) => s.view)
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-surface p-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <ViewSelector />
+        <div className="ml-auto flex items-center gap-2">
+          {view.kind !== 'graph' && <ZoomControls />}
+          <ExportMenu />
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+        <SearchAndFilter />
+      </div>
+    </div>
+  )
+}
+
+/** Name search (highlights matches), names toggle and group filter (dims the rest). */
+function SearchAndFilter() {
   const { orderedGroups: groups } = useGroupTree()
   const groupFilter = useUiStore((s) => s.groupFilter)
   const search = useUiStore((s) => s.search)
   const showNames = useUiStore((s) => s.showNames)
-  const view = useUiStore((s) => s.view)
   const { toggleGroupFilter, clearGroupFilter, setSearch, setShowNames } = useUiStore.getState()
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
       <input
         type="search"
         value={search}
@@ -55,36 +76,6 @@ export function BoardToolbar() {
           )}
         </div>
       )}
-      <div className="ml-auto flex items-center gap-2">
-        {view.kind !== 'graph' && <ZoomControls />}
-        <ExportButton />
-      </div>
-    </div>
-  )
-}
-
-function ExportButton() {
-  const slug = useRoomStore((s) => s.room?.slug ?? 'sala')
-  const view = useUiStore((s) => s.view)
-  const [busy, setBusy] = useState(false)
-
-  const exportPng = async () => {
-    setBusy(true)
-    try {
-      await downloadVisibleBoard(`peopleRank-${slug}-${view.kind}.png`)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={() => void exportPng()}
-      className="rounded-md border border-slate-300 bg-surface px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-    >
-      {busy ? 'Exportando…' : 'Exportar PNG'}
-    </button>
+    </>
   )
 }

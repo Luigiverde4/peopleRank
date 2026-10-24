@@ -17,6 +17,16 @@ export async function renderVisibleBoard(): Promise<string | null> {
   })
 }
 
+/** Saves text (JSON, HTML…) as a file through a temporary link. */
+export function downloadFile(fileName: string, content: string, mimeType: string): void {
+  const url = URL.createObjectURL(new Blob([content], { type: `${mimeType};charset=utf-8` }))
+  const link = document.createElement('a')
+  link.download = fileName
+  link.href = url
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 export async function downloadVisibleBoard(fileName: string): Promise<void> {
   const dataUrl = await renderVisibleBoard()
   if (!dataUrl) return

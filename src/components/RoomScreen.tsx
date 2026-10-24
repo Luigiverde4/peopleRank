@@ -1,11 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { dismissError, useRoomStore } from '../store/roomStore'
 import { effectiveView, useUiStore } from '../store/uiStore'
-import { BoardToolbar } from './board/BoardToolbar'
+import { BoardControls } from './board/BoardControls'
 import { ConsensusBoard } from './board/ConsensusBoard'
 import { MyBoard } from './board/MyBoard'
 import { ParticipantBoard } from './board/ParticipantBoard'
-import { ViewSelector } from './board/ViewSelector'
 import { RoomHeader } from './RoomHeader'
 import { SidePanel } from './side/SidePanel'
 import { StatsPanel } from './stats/StatsPanel'
@@ -38,8 +37,7 @@ export function RoomScreen() {
           <SidePanel />
         </div>
         <section className="flex min-w-0 flex-1 flex-col gap-3 lg:overflow-y-auto">
-          <ViewSelector />
-          <BoardToolbar />
+          <BoardControls />
           <SelectedBoard />
         </section>
         <StatsPanel />

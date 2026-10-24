@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { backend, parseSlug, type GameMode } from '../data'
 import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { defaultRoomName, loadDisplayName, saveDisplayName } from '../lib/displayName'
+import { ImportSessionCard } from './ImportSessionCard'
 
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm outline-none focus:border-sky-400'
@@ -27,6 +28,7 @@ export function HomePage() {
       <div className="grid gap-6 md:grid-cols-2">
         <CreateRoomCard />
         <JoinRoomCard />
+        <ImportSessionCard />
       </div>
     </main>
   )

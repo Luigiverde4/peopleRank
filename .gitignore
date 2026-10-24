@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local name presets (real people: never commit)
+*.local.txt
+
+# Environment
+.env
+.env.*
+!.env.example

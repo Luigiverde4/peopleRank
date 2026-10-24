@@ -2,6 +2,12 @@ import { create } from 'zustand'
 
 export type BoardView = { kind: 'mine' } | { kind: 'consensus' } | { kind: 'participant'; participantId: string }
 
+/** Falls back to "Mi tablero" when the chosen view is not available (yet). */
+export function effectiveView(view: BoardView, revealed: boolean, participantIds: readonly string[]): BoardView {
+  if (view.kind !== 'participant') return view
+  return revealed && participantIds.includes(view.participantId) ? view : { kind: 'mine' }
+}
+
 export type SideTab = 'people' | 'groups'
 
 interface UiStore {

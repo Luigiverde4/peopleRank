@@ -1,10 +1,13 @@
 import { dismissError, useRoomStore } from '../store/roomStore'
-import { MyBoard } from './board/MyBoard'
+import { effectiveView, useUiStore } from '../store/uiStore'
 import { BoardToolbar } from './board/BoardToolbar'
+import { MyBoard } from './board/MyBoard'
+import { ParticipantBoard } from './board/ParticipantBoard'
+import { ViewSelector } from './board/ViewSelector'
 import { RoomHeader } from './RoomHeader'
 import { SidePanel } from './side/SidePanel'
 
-/** Layout of an open room: header, side panel, board and tray. */
+/** Layout of an open room: header, side panel and the board of the selected view. */
 export function RoomScreen() {
   const status = useRoomStore((s) => s.status)
   const error = useRoomStore((s) => s.error)
@@ -29,10 +32,25 @@ export function RoomScreen() {
           <SidePanel />
         </div>
         <section className="flex min-w-0 flex-1 flex-col gap-3 lg:overflow-y-auto">
+          <ViewSelector />
           <BoardToolbar />
-          <MyBoard />
+          <SelectedBoard />
         </section>
       </main>
     </div>
   )
+}
+
+function SelectedBoard() {
+  const chosen = useUiStore((s) => s.view)
+  const revealed = useRoomStore((s) => s.room?.revealed ?? false)
+  const participantIds = useRoomStore((s) => s.participants.map((p) => p.id).join(','))
+  const view = effectiveView(chosen, revealed, participantIds.split(','))
+
+  switch (view.kind) {
+    case 'participant':
+      return <ParticipantBoard participantId={view.participantId} />
+    default:
+      return <MyBoard />
+  }
 }

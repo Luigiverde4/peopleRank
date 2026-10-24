@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { namePresets } from '../../data/presets'
 import { groupIdsByPerson, matchesSearch } from '../../lib/rooms'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
@@ -55,14 +56,14 @@ function AddPeopleForm() {
   const [message, setMessage] = useState<string | null>(null)
   const addPeopleFromText = useRoomStore((s) => s.addPeopleFromText)
 
+  const addNames = async (names: string) => {
+    const lines = names.split(/\r?\n/).filter((line) => line.trim() !== '').length
+    const added = await addPeopleFromText(names)
+    setMessage(addedMessage(added, lines - added))
+  }
+
   const submit = async () => {
-    const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '').length
-    const added = await addPeopleFromText(text)
-    const skipped = lines - added
-    setMessage(
-      `Añadidas ${added} persona${added === 1 ? '' : 's'}` +
-        (skipped > 0 ? ` · ${skipped} repetida${skipped === 1 ? '' : 's'} ignorada${skipped === 1 ? '' : 's'}` : ''),
-    )
+    await addNames(text)
     setText('')
   }
 
@@ -95,6 +96,22 @@ function AddPeopleForm() {
         </button>
         {message && <span className="text-xs text-slate-500">{message}</span>}
       </div>
+      {namePresets.map((preset) => (
+        <button
+          key={preset.label}
+          type="button"
+          onClick={() => void addNames(preset.text)}
+          className="self-start rounded-md border border-sky-300 px-2 py-0.5 text-xs text-sky-700 hover:bg-sky-50"
+        >
+          Cargar lista «{preset.label}» ({preset.count})
+        </button>
+      ))}
     </form>
   )
+}
+
+function addedMessage(added: number, skipped: number): string {
+  const plural = (n: number) => (n === 1 ? '' : 's')
+  const skippedText = skipped > 0 ? ` · ${skipped} repetida${plural(skipped)} ignorada${plural(skipped)}` : ''
+  return `Añadidas ${added} persona${plural(added)}${skippedText}`
 }

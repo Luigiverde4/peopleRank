@@ -71,6 +71,6 @@ Verificado en el navegador:
 
 - Con más de ~100 fichas el tablero se satura visualmente; la búsqueda y el filtro ayudan a encontrar a alguien.
 - El arrastre en vivo entre navegadores se ha verificado con el script (llega el broadcast), no visualmente a mitad de un arrastre.
-- **Sesión duplicada (corregido, sin reproducir):** durante las pruebas apareció una vez un segundo usuario anónimo en la misma pestaña. Coincidió con otra pestaña del mismo origen abierta en la sala y con un retraso de 6 s en la auth, compatible con contención del lock de supabase-js. `signIn` trataba un error de `getSession()` como «sin sesión» y creaba otro usuario anónimo. Ahora lanza el error. Al recargar no se volvió a reproducir.
+- **Sesión duplicada (corregido):** durante las pruebas apareció un segundo usuario anónimo en la misma sala. Causa confirmada: había otra pestaña del mismo origen abierta en la sala, y las dos competían por el lock de auth de supabase-js (6 s de espera). `signIn` trataba un error de `getSession()` como «sin sesión» y creaba otro usuario anónimo. Ahora lanza el error.
 - Tras una recarga en caliente (HMR) de un módulo de datos, la sala puede quedarse en «Cargando sala…» hasta recargar la página. Solo afecta a desarrollo.
 - El bundle supera 500 kB sin comprimir (≈150 kB gzip), sobre todo por supabase-js. Es aceptable para el uso previsto.

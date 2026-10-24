@@ -2,6 +2,9 @@ import type { ReactNode, RefObject } from 'react'
 
 const GRID_STEP_PERCENT = 10
 
+/** Board side: fits the width and leaves room for the header, view selector and toolbar on desktop. */
+export const BOARD_MAX_SIZE = 'min(100%, calc(100dvh - 14rem), 52rem)'
+
 const gridBackground = {
   backgroundImage: [
     'linear-gradient(to right, rgb(148 163 184 / 0.18) 1px, transparent 1px)',

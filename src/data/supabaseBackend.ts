@@ -35,7 +35,10 @@ export function createSupabaseBackend(url: string, publishableKey: string): Data
   let sessionPromise: Promise<string> | null = null
 
   async function signIn(): Promise<string> {
-    const { data } = await client.auth.getSession()
+    const { data, error: sessionError } = await client.auth.getSession()
+    // A failed read (e.g. the auth lock held by another tab) must not be mistaken for
+    // "no session": signing in again would create a second anonymous participant.
+    if (sessionError) throw new Error(`No se pudo recuperar la sesión: ${sessionError.message}`)
     if (data.session) return data.session.user.id
     const { data: signInData, error } = await client.auth.signInAnonymously()
     if (error || !signInData.user) throw new Error(error?.message ?? 'No se pudo iniciar sesión')

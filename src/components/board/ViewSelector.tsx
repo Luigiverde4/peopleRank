@@ -20,6 +20,15 @@ export function ViewSelector() {
       <button type="button" className={tabClass(view.kind === 'mine')} onClick={() => setView({ kind: 'mine' })}>
         Mi tablero
       </button>
+      <button
+        type="button"
+        disabled={!revealed}
+        title={revealed ? undefined : 'Disponible al revelar la sala'}
+        className={`${tabClass(view.kind === 'consensus')} disabled:cursor-not-allowed disabled:opacity-40`}
+        onClick={() => setView({ kind: 'consensus' })}
+      >
+        Consenso
+      </button>
       {revealed ? (
         <select
           aria-label="Ver el tablero de otro participante"

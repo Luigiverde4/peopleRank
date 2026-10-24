@@ -45,6 +45,17 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Arrastres provisionales:** se descartan en cada refetch de `placements`. Un arrastre activo se reenvía en unos 66 ms.
 - **Presence:** la clave es el `participant_id`. Varias pestañas del mismo participante cuentan como una.
 
+## Métricas y estadísticas (fase 3)
+
+- **Escala mostrada:** coordenadas, distancias y dispersiones se muestran de 0 a 100 (valor × 100).
+- **Consenso:** solo incluye a personas con al menos un voto. Con un único voto la dispersión es 0.
+- **Autopercepción:** se compara la colocación propia de mi persona con la mediana de los demás. La distancia es euclídea en 2D; además se indica si «se ve más/menos popular» cuando la diferencia en y es de 5 puntos o más.
+- **Sesgo de grupo:** solo cuentan las personas que el participante ha colocado y que algún otro también ha colocado; se excluye a la propia persona. Si mi persona no tiene grupos, todos cuentan como «resto». Es null si uno de los dos lados está vacío.
+- **Afinidad:** similitud = 1 − distancia media / √2 (√2 es la distancia máxima en el tablero unidad). La diagonal no se calcula.
+- **Puentes:** se muestran los 10 primeros, ordenados por grado y, a igualdad, por nombre.
+- **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
+- **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
+
 ## Fase 1
 
 - **Sala local:** en la fase 1 (sin rutas) la app crea automáticamente una sala "Mi curso" en memoria y la recuerda en `localStorage`.

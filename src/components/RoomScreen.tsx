@@ -1,11 +1,13 @@
 import { dismissError, useRoomStore } from '../store/roomStore'
 import { effectiveView, useUiStore } from '../store/uiStore'
 import { BoardToolbar } from './board/BoardToolbar'
+import { ConsensusBoard } from './board/ConsensusBoard'
 import { MyBoard } from './board/MyBoard'
 import { ParticipantBoard } from './board/ParticipantBoard'
 import { ViewSelector } from './board/ViewSelector'
 import { RoomHeader } from './RoomHeader'
 import { SidePanel } from './side/SidePanel'
+import { StatsPanel } from './stats/StatsPanel'
 
 /** Layout of an open room: header, side panel and the board of the selected view. */
 export function RoomScreen() {
@@ -36,6 +38,7 @@ export function RoomScreen() {
           <BoardToolbar />
           <SelectedBoard />
         </section>
+        <StatsPanel />
       </main>
     </div>
   )
@@ -50,7 +53,9 @@ function SelectedBoard() {
   switch (view.kind) {
     case 'participant':
       return <ParticipantBoard participantId={view.participantId} />
-    default:
+    case 'consensus':
+      return <ConsensusBoard />
+    case 'mine':
       return <MyBoard />
   }
 }

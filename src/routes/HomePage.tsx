@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { backend, parseSlug } from '../data'
-import { loadDisplayName, saveDisplayName } from '../lib/displayName'
+import { defaultRoomName, loadDisplayName, saveDisplayName } from '../lib/displayName'
 
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400'
@@ -41,7 +41,7 @@ function CreateRoomCard() {
     setError(null)
     try {
       saveDisplayName(displayName)
-      const slug = await backend.createRoom(roomName.trim(), displayName.trim())
+      const slug = await backend.createRoom(roomName.trim() || defaultRoomName(new Date()), displayName.trim())
       navigate(`/r/${slug}`)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
@@ -53,14 +53,16 @@ function CreateRoomCard() {
     <form onSubmit={submit} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold">Crear sala</h2>
       <input
-        required
         maxLength={100}
         value={roomName}
         onChange={(event) => setRoomName(event.target.value)}
-        placeholder="Nombre de la sala (p. ej. 2º Bach B)"
-        aria-label="Nombre de la sala"
+        placeholder={`Nombre de la sala (opcional): ${defaultRoomName(new Date())}`}
+        aria-label="Nombre de la sala (opcional)"
         className={inputClass}
       />
+      <p className="-mt-1 text-xs text-slate-500">
+        Una sala es una votación. El nombre solo sirve para distinguirla si creáis varias.
+      </p>
       <input
         required
         maxLength={60}
@@ -70,7 +72,7 @@ function CreateRoomCard() {
         aria-label="Tu nombre"
         className={inputClass}
       />
-      <button type="submit" disabled={busy || !roomName.trim() || !displayName.trim()} className={buttonClass}>
+      <button type="submit" disabled={busy || !displayName.trim()} className={buttonClass}>
         {busy ? 'Creando…' : 'Crear sala'}
       </button>
       {error && <p className="text-sm text-rose-600">{error}</p>}

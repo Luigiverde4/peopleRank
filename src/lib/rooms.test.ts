@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Group } from '../data/types'
-import { groupIdsByPerson, matchesSearch, passesGroupFilter, placementsOf } from './rooms'
+import { filterByName, groupIdsByPerson, matchesSearch, passesGroupFilter, placementsOf } from './rooms'
 
 const group = (id: string): Group => ({ id, roomId: 'r', name: id, color: '#000', createdAt: '' })
 
@@ -44,5 +44,18 @@ describe('matchesSearch', () => {
     expect(matchesSearch('Lucía Gómez', 'luc')).toBe(true)
     expect(matchesSearch('Lucía Gómez', 'GOMEZ')).toBe(true)
     expect(matchesSearch('Lucía Gómez', '  ')).toBe(false)
+  })
+})
+
+describe('filterByName', () => {
+  const people = [{ name: 'Lucía Mora' }, { name: 'Marcos Costa' }, { name: 'Lucas Ruiz' }]
+
+  it('returns everyone for an empty query', () => {
+    expect(filterByName(people, '  ')).toHaveLength(3)
+  })
+
+  it('filters by accent-insensitive substring', () => {
+    expect(filterByName(people, 'luc').map((p) => p.name)).toEqual(['Lucía Mora', 'Lucas Ruiz'])
+    expect(filterByName(people, 'LUCIA')).toEqual([{ name: 'Lucía Mora' }])
   })
 })

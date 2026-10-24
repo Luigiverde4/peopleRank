@@ -12,7 +12,9 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 ## Personas y grupos
 
 - **Nombre normalizado:** sin distinguir mayúsculas, tildes ni espacios repetidos (`normalizeName`). Se usa para detectar duplicados al pegar listas y en el atajo de grupos.
-- **Atajo `Grupo: nombre1, nombre2`:** si el grupo ya existe (por nombre normalizado) se reutiliza; si una persona no existe, se crea. Las líneas sin `:` se ignoran.
+- **Miembros de un grupo:** se eligen desde la pestaña Grupos con un buscador y una lista de casillas de las personas ya añadidas; marcar añade y desmarcar quita, al momento. Al crear un grupo se abre su selector. También se pueden asignar grupos desde cada persona (pestaña Personas).
+- **Atajo `Grupo: nombre1, nombre2`:** queda plegado como opción avanzada. Si el grupo ya existe (por nombre normalizado) se reutiliza; si una persona no existe, se crea. Las líneas sin `:` se ignoran.
+- **Nombre de la sala opcional:** una sala es una votación, no un curso. Si se deja vacío, se llama «Votación del DD/MM».
 - **Colores de grupo:** paleta fija de 10 colores; un grupo nuevo toma el primero no usado.
 - **Búsqueda:** coincidencia por subcadena del nombre normalizado. Las fichas que coinciden se resaltan y nunca se atenúan aunque el filtro de grupos las excluya.
 - **Filtro de grupos:** con varios grupos seleccionados se muestra a quien pertenece a cualquiera de ellos (unión).

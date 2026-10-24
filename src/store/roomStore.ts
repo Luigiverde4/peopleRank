@@ -46,10 +46,12 @@ export interface RoomActions {
   renamePerson(personId: string, name: string): Promise<void>
   deletePerson(personId: string): Promise<void>
   setPersonGroups(personId: string, groupIds: string[]): Promise<void>
+  setMembership(personId: string, groupId: string, member: boolean): Promise<void>
   /** Resizes the image to a 256×256 WebP, uploads it and links it; null removes the photo. */
   setPersonPhoto(personId: string, image: Blob | null): Promise<void>
 
-  createGroup(name: string, color?: string): Promise<void>
+  /** Returns the new group id (null if the name is empty or the insert failed). */
+  createGroup(name: string, color?: string): Promise<string | null>
   updateGroup(groupId: string, patch: { name?: string; color?: string }): Promise<void>
   deleteGroup(groupId: string): Promise<void>
   applyGroupShortcut(text: string): Promise<{ groups: number; people: number }>
@@ -244,6 +246,18 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
       })
     },
 
+    async setMembership(personId, groupId, member) {
+      const { room } = requireRoom()
+      const membership: Membership = { personId, groupId, roomId: room.id }
+      const isOther = (m: Membership) => !(m.personId === personId && m.groupId === groupId)
+      set((state) => ({
+        memberships: member ? [...state.memberships.filter(isOther), membership] : state.memberships.filter(isOther),
+      }))
+      await mutate(['person_groups'], () =>
+        member ? backend.addMemberships([membership]) : backend.removeMemberships([membership]),
+      )
+    },
+
     async setPersonPhoto(personId, image) {
       const { room } = requireRoom()
       await mutate(['people'], async () => {
@@ -255,11 +269,13 @@ export const useRoomStore = create<RoomStore>()((set, get) => {
     async createGroup(name, color) {
       const { room } = requireRoom()
       const cleaned = cleanName(name)
-      if (cleaned === '') return
+      if (cleaned === '') return null
       const groupColor = color ?? nextGroupColor(get().groups.map((g) => g.color))
+      let createdId: string | null = null
       await mutate(['groups'], async () => {
-        await backend.createGroup(room.id, cleaned, groupColor)
+        createdId = (await backend.createGroup(room.id, cleaned, groupColor)).id
       })
+      return createdId
     },
 
     async updateGroup(groupId, patch) {

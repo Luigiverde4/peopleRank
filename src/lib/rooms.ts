@@ -26,6 +26,11 @@ export function passesGroupFilter(personGroupIds: readonly string[], selectedGro
   return personGroupIds.some((id) => selectedGroupIds.includes(id))
 }
 
+/** Items whose name contains the query (accent-insensitive); all of them for an empty query. */
+export function filterByName<T extends { name: string }>(items: readonly T[], query: string): T[] {
+  return normalizeName(query) === '' ? [...items] : items.filter((item) => matchesSearch(item.name, query))
+}
+
 /** True when the search is not empty and the name contains it (accent-insensitive). */
 export function matchesSearch(name: string, search: string): boolean {
   const query = normalizeName(search)

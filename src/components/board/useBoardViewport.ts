@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import type { BoardPoint } from '../../lib/geometry'
-import { FULL_VIEW, fromScreen, panBy, zoomAt, type Viewport } from '../../lib/viewport'
-
-const BUTTON_ZOOM_FACTOR = 1.5
+import { fromScreen, panBy, zoomAt, type Viewport } from '../../lib/viewport'
+import { useUiStore } from '../../store/uiStore'
 /** Wheel delta (px) that doubles or halves the zoom; smaller = faster. */
 const WHEEL_SENSITIVITY = 0.0015
 
@@ -24,17 +23,16 @@ export interface BoardViewport {
   boardPointAt(clientX: number, clientY: number): BoardPoint | null
   /** Pan with one pointer, pinch-zoom with two; attach to the board's empty background. */
   backgroundHandlers: BackgroundHandlers
-  zoomIn(): void
-  zoomOut(): void
-  reset(): void
 }
 
 /**
- * Zoom and pan for one board: wheel zooms towards the cursor, dragging the empty background pans,
- * two fingers pinch-zoom, and buttons zoom around the center. Each viewer has their own view.
+ * Zoom and pan gestures for a board: wheel zooms towards the cursor, dragging the empty background
+ * pans and two fingers pinch-zoom. The view itself lives in the UI store (buttons in the toolbar);
+ * each viewer has their own.
  */
 export function useBoardViewport(boardRef: RefObject<HTMLElement | null>): BoardViewport {
-  const [view, setView] = useState<Viewport>(FULL_VIEW)
+  const view = useUiStore((s) => s.viewport)
+  const setView = useUiStore((s) => s.updateViewport)
   const pointers = useRef(new Map<number, ScreenPoint>())
 
   const fractionAt = useCallback(
@@ -59,7 +57,7 @@ export function useBoardViewport(boardRef: RefObject<HTMLElement | null>): Board
     }
     element.addEventListener('wheel', onWheel, { passive: false })
     return () => element.removeEventListener('wheel', onWheel)
-  }, [boardRef, fractionAt])
+  }, [boardRef, fractionAt, setView])
 
   const boardPointAt = (clientX: number, clientY: number): BoardPoint | null => {
     const at = fractionAt(clientX, clientY)
@@ -104,12 +102,5 @@ export function useBoardViewport(boardRef: RefObject<HTMLElement | null>): Board
     },
   }
 
-  return {
-    view,
-    boardPointAt,
-    backgroundHandlers,
-    zoomIn: () => setView((current) => zoomAt(current, BUTTON_ZOOM_FACTOR, 0.5, 0.5)),
-    zoomOut: () => setView((current) => zoomAt(current, 1 / BUTTON_ZOOM_FACTOR, 0.5, 0.5)),
-    reset: () => setView(FULL_VIEW),
-  }
+  return { view, boardPointAt, backgroundHandlers }
 }

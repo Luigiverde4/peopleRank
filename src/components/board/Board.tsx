@@ -51,7 +51,6 @@ export function Board({ boardRef, viewport, children, active = false }: BoardPro
           <div className="absolute" style={{ ...worldBox(viewport.view), ...gridBackground }}>
             {children}
           </div>
-          <ZoomControls viewport={viewport} />
         </div>
       </div>
       <div className="ml-6 flex w-[calc(100%-1.5rem)] justify-between px-1 pt-1 text-[11px] text-slate-500">
@@ -59,48 +58,6 @@ export function Board({ boardRef, viewport, children, active = false }: BoardPro
         <span className="font-medium text-slate-600">Popularidad en su grupo →</span>
         <span>Centro</span>
       </div>
-    </div>
-  )
-}
-
-const controlClass =
-  'flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-30'
-
-function ZoomControls({ viewport }: { viewport: BoardViewport }) {
-  const { scale } = viewport.view
-
-  return (
-    <div
-      data-export-ignore
-      className="absolute right-2 top-2 z-40 flex items-center gap-0.5 rounded-md border border-slate-200 bg-white/90 p-0.5 shadow-sm"
-      // Clicks on the controls must not start a pan of the board underneath.
-      onPointerDown={(event) => event.stopPropagation()}
-    >
-      <button
-        type="button"
-        aria-label="Alejar"
-        title="Alejar"
-        className={controlClass}
-        onClick={viewport.zoomOut}
-        disabled={scale <= 1}
-      >
-        −
-      </button>
-      <span className="w-10 text-center text-xs tabular-nums text-slate-500">{Math.round(scale * 100)}%</span>
-      <button
-        type="button"
-        aria-label="Acercar"
-        title="Acercar (o rueda del ratón)"
-        className={controlClass}
-        onClick={viewport.zoomIn}
-      >
-        +
-      </button>
-      {scale > 1 && (
-        <button type="button" title="Ver el tablero entero" className={controlClass} onClick={viewport.reset}>
-          Ajustar
-        </button>
-      )}
     </div>
   )
 }

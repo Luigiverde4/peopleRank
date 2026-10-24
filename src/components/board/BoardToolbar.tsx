@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useRoomStore } from '../../store/roomStore'
 import { useUiStore } from '../../store/uiStore'
 import { downloadVisibleBoard } from './exportBoard'
+import { ZoomControls } from './ZoomControls'
 
 /** Group filter (dims the rest) and name search (highlights matches). */
 export function BoardToolbar() {
@@ -9,6 +10,7 @@ export function BoardToolbar() {
   const groupFilter = useUiStore((s) => s.groupFilter)
   const search = useUiStore((s) => s.search)
   const showNames = useUiStore((s) => s.showNames)
+  const view = useUiStore((s) => s.view)
   const { toggleGroupFilter, clearGroupFilter, setSearch, setShowNames } = useUiStore.getState()
 
   return (
@@ -51,7 +53,10 @@ export function BoardToolbar() {
           )}
         </div>
       )}
-      <ExportButton />
+      <div className="ml-auto flex items-center gap-2">
+        {view.kind !== 'graph' && <ZoomControls />}
+        <ExportButton />
+      </div>
     </div>
   )
 }
@@ -75,7 +80,7 @@ function ExportButton() {
       type="button"
       disabled={busy}
       onClick={() => void exportPng()}
-      className="ml-auto rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+      className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
     >
       {busy ? 'Exportando…' : 'Exportar PNG'}
     </button>

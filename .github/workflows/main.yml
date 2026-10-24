@@ -19,9 +19,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          echo "URL length: ${#SUPABASE_URL}"
-          echo "Key length: ${#SUPABASE_KEY}"
-          echo "Key prefix: ${SUPABASE_KEY:0:15}"
-          curl --silent --show-error \
-            "$SUPABASE_URL/rest/v1/rooms?select=id&limit=1" \
-            -H "apikey: $SUPABASE_KEY"
+          # Llama a la función public.keepalive() (RPC), sin exponer ninguna tabla a anon
+          response=$(curl --silent --show-error --fail \
+            --retry 3 --retry-delay 10 --retry-all-errors \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/keepalive" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+
+          echo "Response: $response"
+
+          # keepalive() devuelve 1
+          if [[ "$response" != "1" ]]; then
+            echo "::error::Unexpected response from Supabase"
+            exit 1
+          fi

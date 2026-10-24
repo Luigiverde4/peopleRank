@@ -1,0 +1,317 @@
+import type { DataBackend, RoomConnection, RoomEventHandlers, RoomMembership } from './backend'
+import { newId, newSlug } from './ids'
+import type { Group, Membership, Participant, Person, Placement, PresenceEntry, Room, RoomTable } from './types'
+
+/**
+ * Offline backend: a single local user whose data lives in localStorage.
+ * There is no other participant, so "blind mode" is trivially satisfied.
+ */
+
+export const MEMORY_STORAGE_KEY = 'peopleRank:memory:v1'
+
+interface MemoryDb {
+  userId: string
+  rooms: Room[]
+  participants: Participant[]
+  people: Person[]
+  groups: Group[]
+  memberships: Membership[]
+  placements: Placement[]
+  /** Photo path -> data URL. */
+  photos: Record<string, string>
+}
+
+const ALL_TABLES: RoomTable[] = ['rooms', 'participants', 'people', 'groups', 'person_groups', 'placements']
+
+function emptyDb(): MemoryDb {
+  return {
+    userId: newId(),
+    rooms: [],
+    participants: [],
+    people: [],
+    groups: [],
+    memberships: [],
+    placements: [],
+    photos: {},
+  }
+}
+
+function now(): string {
+  return new Date().toISOString()
+}
+
+function byCreatedAt<T extends { createdAt: string }>(a: T, b: T): number {
+  return a.createdAt.localeCompare(b.createdAt)
+}
+
+function sameMembership(a: Membership, b: Membership): boolean {
+  return a.personId === b.personId && a.groupId === b.groupId
+}
+
+export function createMemoryBackend(storage: Storage | null = globalThis.localStorage ?? null): DataBackend {
+  let db = loadDb()
+
+  function loadDb(): MemoryDb {
+    try {
+      const raw = storage?.getItem(MEMORY_STORAGE_KEY)
+      return raw ? { ...emptyDb(), ...(JSON.parse(raw) as Partial<MemoryDb>) } : emptyDb()
+    } catch {
+      return emptyDb()
+    }
+  }
+
+  function save(): void {
+    try {
+      storage?.setItem(MEMORY_STORAGE_KEY, JSON.stringify(db))
+    } catch (error) {
+      console.error('No se pudo guardar en localStorage', error)
+    }
+  }
+
+  /** Reloads (another tab may have written), applies the change and saves. */
+  function mutate<T>(change: (current: MemoryDb) => T): T {
+    db = loadDb()
+    const result = change(db)
+    save()
+    return result
+  }
+
+  function findRoom(roomId: string): Room {
+    const room = db.rooms.find((candidate) => candidate.id === roomId)
+    if (!room) throw new Error('Sala no encontrada')
+    return room
+  }
+
+  function membershipFor(room: Room): RoomMembership | null {
+    const me = db.participants.find((p) => p.roomId === room.id && p.userId === db.userId)
+    return me ? { room, me } : null
+  }
+
+  function addParticipant(roomId: string, displayName: string): Participant {
+    const participant: Participant = {
+      id: newId(),
+      roomId,
+      userId: db.userId,
+      displayName,
+      personId: null,
+      createdAt: now(),
+    }
+    db.participants.push(participant)
+    return participant
+  }
+
+  const backend: DataBackend = {
+    kind: 'memory',
+
+    async ensureSession() {
+      save()
+      return db.userId
+    },
+
+    async createRoom(name, displayName) {
+      const room: Room = {
+        id: newId(),
+        slug: newSlug(),
+        name,
+        createdBy: db.userId,
+        revealed: false,
+        createdAt: now(),
+      }
+      mutate((current) => {
+        current.rooms.push(room)
+        addParticipant(room.id, displayName)
+      })
+      return room.slug
+    },
+
+    async joinRoom(slug, displayName) {
+      db = loadDb()
+      const room = db.rooms.find((candidate) => candidate.slug === slug)
+      if (!room) throw new Error('Sala no encontrada')
+      const existing = membershipFor(room)
+      if (existing) return existing
+      const me = mutate(() => addParticipant(room.id, displayName))
+      return { room, me }
+    },
+
+    async findMembership(slug) {
+      db = loadDb()
+      const room = db.rooms.find((candidate) => candidate.slug === slug)
+      return room ? membershipFor(room) : null
+    },
+
+    async fetchRoom(roomId) {
+      db = loadDb()
+      return { ...findRoom(roomId) }
+    },
+
+    async fetchParticipants(roomId) {
+      db = loadDb()
+      return db.participants.filter((p) => p.roomId === roomId).sort(byCreatedAt)
+    },
+
+    async fetchPeople(roomId) {
+      db = loadDb()
+      return db.people.filter((p) => p.roomId === roomId).sort(byCreatedAt)
+    },
+
+    async fetchGroups(roomId) {
+      db = loadDb()
+      return db.groups.filter((g) => g.roomId === roomId).sort(byCreatedAt)
+    },
+
+    async fetchMemberships(roomId) {
+      db = loadDb()
+      return db.memberships.filter((m) => m.roomId === roomId)
+    },
+
+    async fetchPlacements(roomId) {
+      db = loadDb()
+      return db.placements.filter((p) => p.roomId === roomId)
+    },
+
+    async addPeople(roomId, names) {
+      const createdAt = now()
+      const people = names.map<Person>((name) => ({ id: newId(), roomId, name, photoPath: null, createdAt }))
+      mutate((current) => current.people.push(...people))
+      return people
+    },
+
+    async renamePerson(personId, name) {
+      mutate((current) => {
+        const person = current.people.find((p) => p.id === personId)
+        if (person) person.name = name
+      })
+    },
+
+    async deletePerson(personId) {
+      mutate((current) => {
+        const photoPath = current.people.find((p) => p.id === personId)?.photoPath
+        if (photoPath) delete current.photos[photoPath]
+        current.people = current.people.filter((p) => p.id !== personId)
+        current.memberships = current.memberships.filter((m) => m.personId !== personId)
+        current.placements = current.placements.filter((p) => p.personId !== personId)
+        for (const participant of current.participants) {
+          if (participant.personId === personId) participant.personId = null
+        }
+      })
+    },
+
+    async setPersonPhoto(personId, photoPath) {
+      mutate((current) => {
+        const person = current.people.find((p) => p.id === personId)
+        if (!person) return
+        if (person.photoPath && person.photoPath !== photoPath) delete current.photos[person.photoPath]
+        person.photoPath = photoPath
+      })
+    },
+
+    async createGroup(roomId, name, color) {
+      const group: Group = { id: newId(), roomId, name, color, createdAt: now() }
+      mutate((current) => current.groups.push(group))
+      return group
+    },
+
+    async updateGroup(groupId, patch) {
+      mutate((current) => {
+        const group = current.groups.find((g) => g.id === groupId)
+        if (group) Object.assign(group, patch)
+      })
+    },
+
+    async deleteGroup(groupId) {
+      mutate((current) => {
+        current.groups = current.groups.filter((g) => g.id !== groupId)
+        current.memberships = current.memberships.filter((m) => m.groupId !== groupId)
+      })
+    },
+
+    async addMemberships(memberships) {
+      mutate((current) => {
+        for (const membership of memberships) {
+          if (!current.memberships.some((m) => sameMembership(m, membership))) {
+            current.memberships.push(membership)
+          }
+        }
+      })
+    },
+
+    async removeMemberships(memberships) {
+      mutate((current) => {
+        current.memberships = current.memberships.filter(
+          (m) => !memberships.some((removed) => sameMembership(m, removed)),
+        )
+      })
+    },
+
+    async savePlacement(placement) {
+      mutate((current) => {
+        current.placements = current.placements.filter(
+          (p) => !(p.participantId === placement.participantId && p.personId === placement.personId),
+        )
+        current.placements.push({ ...placement, updatedAt: now() })
+      })
+    },
+
+    async deletePlacement(participantId, personId) {
+      mutate((current) => {
+        current.placements = current.placements.filter(
+          (p) => !(p.participantId === participantId && p.personId === personId),
+        )
+      })
+    },
+
+    async updateParticipant(participantId, patch) {
+      mutate((current) => {
+        const participant = current.participants.find((p) => p.id === participantId)
+        if (participant) Object.assign(participant, patch)
+      })
+    },
+
+    async revealRoom(roomId) {
+      mutate((current) => {
+        const room = current.rooms.find((r) => r.id === roomId)
+        if (room) room.revealed = true
+      })
+    },
+
+    async uploadPhoto(roomId, photo) {
+      const path = `${roomId}/${newId()}.webp`
+      const dataUrl = await blobToDataUrl(photo)
+      mutate((current) => {
+        current.photos[path] = dataUrl
+      })
+      return path
+    },
+
+    photoUrl(photoPath) {
+      return db.photos[photoPath] ?? ''
+    },
+
+    connectRoom(_roomId: string, presence: PresenceEntry, handlers: RoomEventHandlers): RoomConnection {
+      handlers.onPresence([presence])
+      // Other tabs of the same browser write to the same storage key.
+      const onStorage = (event: StorageEvent) => {
+        if (event.key !== MEMORY_STORAGE_KEY) return
+        db = loadDb()
+        ALL_TABLES.forEach((table) => handlers.onTableChange(table))
+      }
+      globalThis.addEventListener?.('storage', onStorage)
+      return {
+        sendDrag: () => {},
+        disconnect: () => globalThis.removeEventListener?.('storage', onStorage),
+      }
+    },
+  }
+
+  return backend
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
+  })
+}

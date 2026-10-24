@@ -6,6 +6,7 @@ import { useUiStore } from '../../store/uiStore'
 import { Token } from '../Token'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { InlineEdit } from '../ui/InlineEdit'
+import { useGroupTree } from '../useGroupTree'
 import { useTokenStyles } from '../useTokenStyles'
 import { GroupPicker } from './GroupPicker'
 import { PhotoButton } from './PhotoButton'
@@ -13,6 +14,7 @@ import { PhotoButton } from './PhotoButton'
 export function PeopleTab() {
   const people = useRoomStore((s) => s.people)
   const groups = useRoomStore((s) => s.groups)
+  const { orderedGroups } = useGroupTree()
   const memberships = useRoomStore((s) => s.memberships)
   const search = useUiStore((s) => s.search)
   const { lookOf } = useTokenStyles()
@@ -39,7 +41,7 @@ export function PeopleTab() {
             />
             <PhotoButton personId={person.id} personName={person.name} hasPhoto={person.photoPath !== null} />
             <GroupPicker
-              groups={groups}
+              groups={orderedGroups}
               selectedIds={groupsOf.get(person.id) ?? []}
               onChange={(ids) => void setPersonGroups(person.id, ids)}
             />

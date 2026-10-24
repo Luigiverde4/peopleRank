@@ -58,6 +58,14 @@ Decisiones tomadas ante ambigüedades de la especificación. La más simple y ra
 - **Vistas antes de revelar:** «Consenso» y «Tablero de X» se desactivan hasta revelar (antes, por RLS, el consenso solo contendría tus votos). En modo ciego el panel solo muestra grupos y puentes.
 - **Nombres clicables:** en las listas de estadísticas, pulsar un nombre lo pone en la búsqueda y lo resalta en el tablero.
 
+## Subgrupos y puentes
+
+- **Dos niveles:** grupo principal y subgrupos (p. ej., dentro del grupo A, las tres chicas más amigas). Lo impone un trigger en la base (`check_group_depth`) y la misma regla en el backend de memoria.
+- **Herencia derivada, no guardada:** se guarda la pertenencia directa; estar en un subgrupo cuenta como estar en el grupo principal en el filtro, el tamaño, las estadísticas y el grafo (`expandMemberships`). En el selector de miembros del grupo principal, quien está por un subgrupo aparece marcado y bloqueado («por subgrupo»).
+- **Anillo de la ficha:** muestra el subgrupo y no repite el grupo principal. Un subgrupo nuevo toma por defecto un tono más claro u oscuro del color de su grupo.
+- **Borrar un grupo principal** no borra sus subgrupos: pasan a ser grupos principales.
+- **Puentes:** el cálculo automático (personas en dos grupos) se ha quitado a petición del usuario, porque es poco común. Los puentes pasan a marcarse a mano: una persona del grupo A y otra del grupo B.
+
 ## Modo oscuro
 
 - **Selector Sistema / Claro / Oscuro** en la portada y la cabecera; se guarda en `localStorage` y un script en `index.html` lo aplica antes de pintar.

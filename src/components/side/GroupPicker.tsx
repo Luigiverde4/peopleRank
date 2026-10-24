@@ -26,7 +26,9 @@ export function GroupPicker({ groups, selectedIds, onChange }: GroupPickerProps)
           {groups.map((group) => (
             <label
               key={group.id}
-              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50"
+              className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50 ${
+                group.parentId ? 'pl-6' : ''
+              }`}
             >
               <input type="checkbox" checked={selectedIds.includes(group.id)} onChange={() => toggle(group.id)} />
               <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: group.color }} />

@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useRoomStore } from '../../store/roomStore'
+import { useGroupTree } from '../useGroupTree'
 import { useUiStore } from '../../store/uiStore'
 import { downloadVisibleBoard } from './exportBoard'
 import { ZoomControls } from './ZoomControls'
 
 /** Group filter (dims the rest) and name search (highlights matches). */
 export function BoardToolbar() {
-  const groups = useRoomStore((s) => s.groups)
+  const { orderedGroups: groups } = useGroupTree()
   const groupFilter = useUiStore((s) => s.groupFilter)
   const search = useUiStore((s) => s.search)
   const showNames = useUiStore((s) => s.showNames)
@@ -41,6 +42,7 @@ export function BoardToolbar() {
                   active ? 'border-slate-700 bg-slate-800 text-slate-50' : 'border-slate-300 bg-surface text-slate-600'
                 }`}
               >
+                {group.parentId && <span aria-hidden>↳</span>}
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: group.color }} />
                 {group.name}
               </button>

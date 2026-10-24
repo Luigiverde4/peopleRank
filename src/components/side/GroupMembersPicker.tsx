@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Group } from '../../data/types'
 import { filterByName } from '../../lib/rooms'
 import { useRoomStore } from '../../store/roomStore'
+import { useGroupTree } from '../useGroupTree'
 
 /** Searchable checklist of the room's people; ticking adds them to the group, unticking removes them. */
 export function GroupMembersPicker({ group }: { group: Group }) {
@@ -11,12 +12,23 @@ export function GroupMembersPicker({ group }: { group: Group }) {
   const [query, setQuery] = useState('')
   const [onlyMembers, setOnlyMembers] = useState(false)
 
+  const { effectiveMemberships } = useGroupTree()
+
   const memberIds = useMemo(
     () => new Set(memberships.filter((m) => m.groupId === group.id).map((m) => m.personId)),
     [memberships, group.id],
   )
+  // People who belong to this group only through one of its subgroups.
+  const viaSubgroupIds = useMemo(
+    () =>
+      new Set(
+        effectiveMemberships.filter((m) => m.groupId === group.id && !memberIds.has(m.personId)).map((m) => m.personId),
+      ),
+    [effectiveMemberships, group.id, memberIds],
+  )
+  const isMember = (personId: string) => memberIds.has(personId) || viaSubgroupIds.has(personId)
   const matching = filterByName(people, query)
-  const visible = onlyMembers ? matching.filter((p) => memberIds.has(p.id)) : matching
+  const visible = onlyMembers ? matching.filter((p) => isMember(p.id)) : matching
   const inputId = `members-search-${group.id}`
 
   if (people.length === 0) {
@@ -48,11 +60,17 @@ export function GroupMembersPicker({ group }: { group: Group }) {
             <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-surface">
               <input
                 type="checkbox"
-                checked={memberIds.has(person.id)}
+                checked={isMember(person.id)}
+                disabled={viaSubgroupIds.has(person.id)}
                 onChange={(event) => void setMembership(person.id, group.id, event.target.checked)}
                 style={{ accentColor: group.color }}
               />
               <span className="truncate">{person.name}</span>
+              {viaSubgroupIds.has(person.id) && (
+                <span className="shrink-0 text-xs text-slate-400" title="Está en un subgrupo de este grupo">
+                  por subgrupo
+                </span>
+              )}
             </label>
           </li>
         ))}

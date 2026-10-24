@@ -1,29 +1,30 @@
 import { useMemo, useState } from 'react'
 import type { Group } from '../../data/types'
-import { nextGroupColor } from '../../lib/colors'
-import { useRoomStore } from '../../store/roomStore'
+import { canBeSubgroup } from '../../lib/groupTree'
+import { defaultGroupColor, useRoomStore } from '../../store/roomStore'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { InlineEdit } from '../ui/InlineEdit'
+import { useGroupTree } from '../useGroupTree'
 import { GroupMembersPicker } from './GroupMembersPicker'
 
 export function GroupsTab() {
-  const groups = useRoomStore((s) => s.groups)
-  const memberships = useRoomStore((s) => s.memberships)
+  const { orderedGroups, effectiveMemberships } = useGroupTree()
   // The group whose member picker is open; a new group opens it straight away.
   const [openGroupId, setOpenGroupId] = useState<string | null>(null)
 
+  // Sizes count people in subgroups as members of the parent group too.
   const sizeOf = useMemo(() => {
     const sizes = new Map<string, number>()
-    memberships.forEach((m) => sizes.set(m.groupId, (sizes.get(m.groupId) ?? 0) + 1))
+    effectiveMemberships.forEach((m) => sizes.set(m.groupId, (sizes.get(m.groupId) ?? 0) + 1))
     return sizes
-  }, [memberships])
+  }, [effectiveMemberships])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
       <CreateGroupForm onCreated={setOpenGroupId} />
       <ul className="divide-y divide-slate-100">
-        {groups.length === 0 && <li className="py-2 text-sm text-slate-400">Todavía no hay grupos.</li>}
-        {groups.map((group) => (
+        {orderedGroups.length === 0 && <li className="py-2 text-sm text-slate-400">Todavía no hay grupos.</li>}
+        {orderedGroups.map((group) => (
           <GroupRow
             key={group.id}
             group={group}
@@ -47,10 +48,19 @@ interface GroupRowProps {
 
 function GroupRow({ group, size, open, onToggle }: GroupRowProps) {
   const { updateGroup, deleteGroup } = useRoomStore.getState()
+  const isSubgroup = group.parentId !== null
+  const deleteTitle = isSubgroup
+    ? `Borrar el subgrupo ${group.name}`
+    : `Borrar el grupo ${group.name} (sus subgrupos pasan a ser grupos principales)`
 
   return (
-    <li className="flex flex-col gap-2 py-1.5">
+    <li className={`flex flex-col gap-2 py-1.5 ${isSubgroup ? 'pl-5' : ''}`}>
       <div className="flex items-center gap-2">
+        {isSubgroup && (
+          <span aria-hidden className="-ml-4 text-xs text-slate-400">
+            ↳
+          </span>
+        )}
         <input
           type="color"
           aria-label={`Color de ${group.name}`}
@@ -74,12 +84,47 @@ function GroupRow({ group, size, open, onToggle }: GroupRowProps) {
         >
           {size} {size === 1 ? 'miembro' : 'miembros'} {open ? '▴' : '▾'}
         </button>
-        <ConfirmButton title={`Borrar el grupo ${group.name}`} onConfirm={() => void deleteGroup(group.id)}>
+        <ConfirmButton title={deleteTitle} onConfirm={() => void deleteGroup(group.id)}>
           ✕
         </ConfirmButton>
       </div>
-      {open && <GroupMembersPicker group={group} />}
+      {open && (
+        <div className="flex flex-col gap-2">
+          <ParentSelect group={group} />
+          <GroupMembersPicker group={group} />
+        </div>
+      )}
     </li>
+  )
+}
+
+/** Moves a group inside another one (or back to the top level), respecting the two-level limit. */
+function ParentSelect({ group }: { group: Group }) {
+  const groups = useRoomStore((s) => s.groups)
+  const updateGroup = useRoomStore((s) => s.updateGroup)
+
+  if (!canBeSubgroup(group.id, groups)) {
+    return <p className="text-xs text-slate-500">Tiene subgrupos, así que no puede estar dentro de otro grupo.</p>
+  }
+  const candidates = groups.filter((g) => g.parentId === null && g.id !== group.id)
+  if (candidates.length === 0) return null
+
+  return (
+    <label className="flex items-center gap-2 text-xs text-slate-600">
+      Dentro de
+      <select
+        value={group.parentId ?? ''}
+        onChange={(event) => void updateGroup(group.id, { parentId: event.target.value || null })}
+        className="min-w-0 rounded-md border border-slate-300 bg-surface px-1 py-0.5 text-xs"
+      >
+        <option value="">— Ninguno (grupo principal) —</option>
+        {candidates.map((candidate) => (
+          <option key={candidate.id} value={candidate.id}>
+            {candidate.name}
+          </option>
+        ))}
+      </select>
+    </label>
   )
 }
 
@@ -87,11 +132,13 @@ function CreateGroupForm({ onCreated }: { onCreated(groupId: string): void }) {
   const groups = useRoomStore((s) => s.groups)
   const createGroup = useRoomStore((s) => s.createGroup)
   const [name, setName] = useState('')
+  const [parentId, setParentId] = useState('')
   const [pickedColor, setPickedColor] = useState<string | null>(null)
-  const color = pickedColor ?? nextGroupColor(groups.map((g) => g.color))
+  const color = pickedColor ?? defaultGroupColor(groups, parentId || null)
+  const topLevel = groups.filter((g) => g.parentId === null)
 
   const submit = async () => {
-    const groupId = await createGroup(name, color)
+    const groupId = await createGroup(name, color, parentId || null)
     setName('')
     setPickedColor(null)
     if (groupId) onCreated(groupId)
@@ -99,33 +146,56 @@ function CreateGroupForm({ onCreated }: { onCreated(groupId: string): void }) {
 
   return (
     <form
-      className="flex items-center gap-2"
+      className="flex flex-col gap-2"
       onSubmit={(event) => {
         event.preventDefault()
         void submit()
       }}
     >
-      <input
-        type="color"
-        aria-label="Color del nuevo grupo"
-        value={color}
-        onChange={(event) => setPickedColor(event.target.value)}
-        className="h-7 w-7 shrink-0 cursor-pointer rounded border-0 bg-transparent p-0"
-      />
-      <input
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder="Nuevo grupo"
-        aria-label="Nombre del nuevo grupo"
-        className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-sky-400"
-      />
-      <button
-        type="submit"
-        disabled={name.trim() === ''}
-        className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
-      >
-        Crear
-      </button>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label="Color del nuevo grupo"
+          value={color}
+          onChange={(event) => setPickedColor(event.target.value)}
+          className="h-7 w-7 shrink-0 cursor-pointer rounded border-0 bg-transparent p-0"
+        />
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder={parentId ? 'Nuevo subgrupo' : 'Nuevo grupo'}
+          aria-label="Nombre del nuevo grupo"
+          className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-sky-400"
+        />
+        <button
+          type="submit"
+          disabled={name.trim() === ''}
+          className="rounded-md bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
+        >
+          Crear
+        </button>
+      </div>
+      {topLevel.length > 0 && (
+        <label className="flex items-center gap-2 text-xs text-slate-600">
+          Dentro de
+          <select
+            aria-label="Grupo que contiene al nuevo"
+            value={parentId}
+            onChange={(event) => {
+              setParentId(event.target.value)
+              setPickedColor(null)
+            }}
+            className="min-w-0 rounded-md border border-slate-300 bg-surface px-1 py-0.5 text-xs"
+          >
+            <option value="">— Ninguno (grupo principal) —</option>
+            {topLevel.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </form>
   )
 }

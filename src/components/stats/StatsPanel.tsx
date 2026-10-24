@@ -51,8 +51,8 @@ export function StatsPanel() {
         </>
       ) : (
         <p className="py-3 text-xs text-slate-500">
-          Las estadísticas que comparan votantes (controversia, autopercepción, sesgo y afinidad) aparecerán al
-          revelar la sala.
+          Las estadísticas que comparan votantes (controversia, autopercepción, sesgo y afinidad) aparecerán al revelar
+          la sala.
         </p>
       )}
     </aside>
@@ -87,7 +87,12 @@ function GroupStatsSection() {
               const group = groupById.get(stat.groupId)
               return (
                 <tr key={stat.groupId}>
-                  <td className="flex items-center gap-1.5 py-0.5">
+                  <td className={`flex items-center gap-1.5 py-0.5 ${group?.parentId ? 'pl-3' : ''}`}>
+                    {group?.parentId && (
+                      <span aria-hidden className="text-slate-400">
+                        ↳
+                      </span>
+                    )}
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: group?.color }} />
                     <span className="truncate">{group?.name}</span>
                   </td>
